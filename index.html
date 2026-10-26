@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>AETHER AI</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: left rail of life areas + main column; rail becomes a scrolling tab strip on phones */
+:root{
+  --bg:#f2f4f8; --surface:#ffffff; --surface-2:#f7f8fb; --ink:#16202e; --muted:#5b6676; --line:#dfe4eb;
+  --accent:#2d5bd7; --accent-ink:#ffffff; --accent-soft:#e7edfc;
+  --c-study:#2d5bd7; --c-health:#1f8a5b; --c-work:#b85d24; --c-personal:#7a5bd1; --c-social:#c2417a;
+  --ok:#1f8a5b; --warn:#a96f12; --bad:#c2413a;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Manrope", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e131b; --surface:#161d28; --surface-2:#1b2330; --ink:#e6ebf2; --muted:#95a1b3; --line:#273142;
+  --accent:#86a2ff; --accent-ink:#0e131b; --accent-soft:#1d2945;
+  --c-study:#86a2ff; --c-health:#4cc28d; --c-work:#e58d55; --c-personal:#a98ff2; --c-social:#ec7dab;
+  --ok:#4cc28d; --warn:#e3ad52; --bad:#f07068; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e131b; --surface:#161d28; --surface-2:#1b2330; --ink:#e6ebf2; --muted:#95a1b3; --line:#273142;
+  --accent:#86a2ff; --accent-ink:#0e131b; --accent-soft:#1d2945;
+  --c-study:#86a2ff; --c-health:#4cc28d; --c-work:#e58d55; --c-personal:#a98ff2; --c-social:#ec7dab;
+  --ok:#4cc28d; --warn:#e3ad52; --bad:#f07068; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+.app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100%;}
+.rail{position:sticky;top:0;align-self:start;height:100vh;padding:24px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;background:var(--surface)}
+.brand{font-family:var(--f-display);font-weight:700;font-size:22px;padding:0 10px 18px;display:flex;align-items:center;gap:10px}
+.brand-dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:0;background:none;cursor:pointer;text-align:left;color:var(--muted);font-weight:600}
+.nav:hover{background:var(--surface-2);color:var(--ink)}
+.nav[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.nav .sw{width:8px;height:8px;border-radius:2px;background:currentColor;opacity:.7}
+.rail-foot{margin-top:auto;font-size:12px;color:var(--muted);padding:10px}
+.main{padding-block:28px 60px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));max-width:1180px;width:100%;min-width:0}
+@media (min-width:900px){.main{padding-left:36px;padding-right:36px}}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:22px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.top h1{font-size:clamp(26px,4vw,36px);font-weight:700;margin-top:4px}
+.sync{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+.card h2{font-size:18px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h2 small{font-family:var(--f-body);font-size:12px;font-weight:600;color:var(--muted)}
+.brief{background:var(--accent);color:var(--accent-ink);border:0}
+.brief p{margin:8px 0 0;max-width:65ch;opacity:.92}
+.brief .big{font-family:var(--f-display);font-size:24px;font-weight:700}
+.kpi .lbl{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.kpi .val{font-family:var(--f-mono);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:4px}
+.kpi .val small{font-size:14px;color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.list{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);min-width:0}
+.row:first-child{border-top:0}
+.row .grow{flex:1;min-width:0;overflow-wrap:anywhere}
+.row .meta{font-size:12px;color:var(--muted)}
+.time{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted);min-width:46px}
+.cat{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.done .grow .t{text-decoration:line-through;color:var(--muted)}
+.chk{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);background:var(--surface);cursor:pointer;flex:none;display:grid;place-items:center;padding:0}
+.chk[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.chk[aria-pressed="true"]::after{content:"";width:6px;height:11px;border:solid var(--surface);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px 6px;border-radius:6px}
+.x:hover{color:var(--bad);background:var(--surface-2)}
+form.add{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+input,select,textarea{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input[type=text],textarea{flex:1 1 180px}
+textarea{width:100%;resize:vertical;min-height:60px}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper .btn{width:36px;padding:6px 0}
+.cups{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.cup{width:22px;height:30px;border:2px solid var(--c-health);border-radius:3px 3px 7px 7px;position:relative;overflow:hidden}
+.cup.full::after{content:"";position:absolute;inset:35% 0 0;background:var(--c-health);opacity:.75}
+.moods{display:flex;gap:6px;flex-wrap:wrap}
+.mood{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:600;font-size:13px}
+.mood[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:10px}
+.chart .grid-l{stroke:var(--line);stroke-width:1}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted)}
+.empty h3{color:var(--ink);font-size:18px;margin-bottom:6px}
+.empty .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.status{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);cursor:pointer;white-space:nowrap}
+.status.draft{color:var(--muted)} .status.scheduled{color:var(--warn)} .status.posted{color:var(--ok)}
+.plat{font-weight:700;font-size:13px}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0;max-width:70ch}
+.example-flag{background:var(--surface);border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.pomo{font-family:var(--f-mono);font-size:44px;font-weight:600;font-variant-numeric:tabular-nums;text-align:center;margin:6px 0 12px}
+.toasts{position:fixed;right:calc(16px + env(safe-area-inset-right, 0px));bottom:calc(16px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;gap:8px;z-index:20;max-width:min(360px, calc(100vw - 32px))}
+.toast{background:var(--ink);color:var(--bg);padding:12px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;gap:10px;align-items:flex-start}
+.toast b{display:block;font-family:var(--f-display)}
+.toast button{margin-left:auto;background:none;border:0;color:inherit;cursor:pointer;font-size:18px;opacity:.7}
+.ms{display:flex;align-items:center;gap:8px;padding:6px 0}
+.spark{width:110px;height:32px;flex:none}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .rail{position:sticky;top:env(safe-area-inset-top, 0px);height:auto;flex-direction:row;overflow-x:auto;padding:10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));border-right:0;border-bottom:1px solid var(--line);z-index:5}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:10;background:var(--surface)}
+  .brand,.rail-foot{display:none}
+  .nav{white-space:nowrap}
+  .main{padding-top:18px}
+}
+@media (prefers-reduced-motion:no-preference){.toast{animation:in .25s ease-out}@keyframes in{from{transform:translateY(8px);opacity:.4}}}
+</style>
+
+<div class="app">
+  <nav class="rail" id="rail" aria-label="Sections">
+    <div class="brand"><span class="brand-dot"></span>AETHER AI</div>
+  </nav>
+  <main class="main" id="main">
+    <div class="empty"><h3>AETHER AI load ho raha hai</h3>Aap ka data aap ke account se aa raha hai.</div>
+  </main>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+const SECTIONS=[
+  {id:"overview",label:"Overview"},
+  {id:"schedule",label:"Schedule"},
+  {id:"health",label:"Health"},
+  {id:"study",label:"Study"},
+  {id:"career",label:"Career"},
+  {id:"habits",label:"Habits"},
+  {id:"social",label:"Social Media"},
+];
+const CATS={study:"Study",health:"Health",work:"Work",personal:"Personal",social:"Social"};
+const PLATFORMS=["Instagram","Facebook","LinkedIn","X","WhatsApp"];
+const MOODS=["Bura","Theek nahi","Theek","Acha","Zabardast"];
+
+const blank=()=>({tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},example:false});
+let S=blank();
+let view="overview";
+let store={kind:"none"};
+let pendingSave=null, saving=Promise.resolve(), dirty=false;
+
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today=()=>ymd(new Date());
+const addDays=(s,n)=>{const d=new Date(s+"T00:00");d.setDate(d.getDate()+n);return ymd(d)};
+const nowHM=()=>{const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())};
+const uid=()=>Math.random().toString(36).slice(2,10);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDay=s=>{const t=today();if(s===t)return"Aaj";if(s===addDays(t,1))return"Kal";if(s===addDays(t,-1))return"Guzra kal";return new Date(s+"T00:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})};
+const weekStart=()=>{const d=new Date();const k=(d.getDay()+6)%7;d.setDate(d.getDate()-k);return ymd(d)};
+const hd=(date=today())=>S.health[date]||(S.health[date]={water:0,sleep:"",steps:"",workout:false,mood:null});
+const catColor=c=>`var(--c-${c})`;
+
+/* ---------- storage ---------- */
+function normalize(d){const b=blank();d=d&&typeof d==="object"?d:{};
+  return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})}}}
+function save(){
+  dirty=true;
+  clearTimeout(pendingSave);
+  pendingSave=setTimeout(()=>{
+    const body=JSON.parse(JSON.stringify(S));
+    saving=saving.then(async()=>{
+      try{
+        if(store.kind==="db"){await store.ref.set(body)}
+        else{localStorage.setItem("aether-state",JSON.stringify(body))}
+        dirty=false; setSync();
+      }catch(e){
+        if(e&&e.code==="quota_exceeded")toast("Save nahi hua","Storage full hai. Purana data delete karein.");
+        else toast("Save nahi hua","Connection check karein, phir dobara koshish hogi.");
+      }
+    });
+  },500);
+}
+function setSync(){
+  const el=document.getElementById("sync");if(!el)return;
+  el.innerHTML=store.kind==="db"
+    ? `<span class="pill ok">● Aap ke account mein save</span>`
+    : `<span class="pill warn">● Sirf is device par save</span>`;
+}
+async function boot(){
+  render();
+  let db=null,user=null;
+  try{[db,user]=await Promise.all([window.claude?.use?.("db"),window.claude?.use?.("user")])}catch(e){}
+  const id=user?await user.id():null;
+  if(db&&id){
+    const ref=db.doc("data/users/"+id+"/aether");
+    store={kind:"db",ref};
+    try{const snap=await ref.get(); if(snap.exists)S=normalize(snap.data());}catch(e){}
+    ref.onSnapshot(snap=>{
+      if(snap.metadata.hasPendingWrites||dirty||!snap.exists)return;
+      S=normalize(snap.data()); render();
+    },()=>{});
+  }else{
+    store={kind:"local"};
+    try{const raw=localStorage.getItem("aether-state");if(raw)S=normalize(JSON.parse(raw))}catch(e){}
+  }
+  try{const v=localStorage.getItem("aether-view");if(v&&SECTIONS.some(s=>s.id===v))view=v}catch(e){}
+  if(location.hash&&SECTIONS.some(s=>"#"+s.id===location.hash))view=location.hash.slice(1);
+  render(); startAlerts();
+}
+
+/* ---------- alerts ---------- */
+let audioCtx=null;
+function beep(){try{audioCtx=audioCtx||new AudioContext();const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=880;g.gain.setValueAtTime(.15,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.6);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+.6)}catch(e){}}
+function toast(title,body){
+  const box=document.getElementById("toasts");const t=document.createElement("div");t.className="toast";
+  t.innerHTML=`<div><b></b><span></span></div><button aria-label="Band karein">×</button>`;
+  t.querySelector("b").textContent=title;t.querySelector("span").textContent=body;
+  t.querySelector("button").onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),12000);
+}
+function notify(title,body){
+  toast(title,body);beep();
+  try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}
+}
+function checkAlerts(){
+  const t=today(),hm=nowHM();let changed=false;
+  const d=new Date(Date.now()-30*60000),since=pad(d.getHours())+":"+pad(d.getMinutes());
+  for(const k of S.tasks){
+    if(k.done||k.notified||!k.time||k.date!==t)continue;
+    if(k.time<=hm&&(k.time>=since||since>hm)){notify("AETHER AI: "+k.title,`${k.time} ka waqt ho gaya · ${CATS[k.cat]||""}`);k.notified=true;changed=true}
+  }
+  for(const p of S.social.posts){
+    if(p.status!=="scheduled"||p.notified||p.date!==t||!p.time)continue;
+    if(p.time<=hm){notify("Post ka waqt: "+p.platform,p.text.slice(0,80));p.notified=true;changed=true}
+  }
+  if(changed){save();render()}
+}
+function startAlerts(){checkAlerts();setInterval(checkAlerts,20000)}
+
+/* ---------- helpers for views ---------- */
+function barChart(values,labels,color,unit){
+  const W=320,H=130,P=22,max=Math.max(1,...values);const bw=(W-P*2)/values.length;
+  const nice=Math.ceil(max);
+  let g=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Last ${values.length} days">`;
+  g+=`<line class="grid-l" x1="${P}" x2="${W-6}" y1="${H-P}" y2="${H-P}"/><line class="grid-l" x1="${P}" x2="${W-6}" y1="10" y2="10" stroke-dasharray="3 3"/>`;
+  g+=`<text x="2" y="14">${nice}${unit}</text><text x="2" y="${H-P}">0</text>`;
+  values.forEach((v,i)=>{const h=(v/nice)*(H-P-10);const x=P+i*bw+bw*.2;const last=i===values.length-1;
+    g+=`<rect x="${x}" y="${H-P-h}" width="${bw*.6}" height="${Math.max(h,0)}" rx="3" fill="${color}" opacity="${last?1:.55}"/>`;
+    g+=`<text x="${x+bw*.3}" y="${H-6}" text-anchor="middle">${labels[i]}</text>`});
+  return g+"</svg>";
+}
+function spark(hist){
+  if(!hist||hist.length<2)return"";const W=110,H=32;const v=hist.map(h=>+h.followers);const mn=Math.min(...v),mx=Math.max(...v),r=mx-mn||1;
+  const pts=v.map((y,i)=>[(i/(v.length-1))*(W-6)+3,H-4-((y-mn)/r)*(H-8)]);
+  const d=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join("");
+  const l=pts[pts.length-1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d} L${l[0]} ${H} L3 ${H}Z" fill="var(--c-social)" opacity=".12"/><path d="${d}" fill="none" stroke="var(--c-social)" stroke-width="2"/><circle cx="${l[0]}" cy="${l[1]}" r="3" fill="var(--c-social)"/></svg>`;
+}
+const last7=()=>Array.from({length:7},(_,i)=>addDays(today(),i-6));
+const dayLbl=s=>new Date(s+"T00:00").toLocaleDateString("en-GB",{weekday:"narrow"});
+const isEmpty=()=>!S.tasks.length&&!S.study.subjects.length&&!S.career.length&&!S.habits.length&&!S.social.accounts.length&&!S.social.posts.length&&!Object.keys(S.health).length;
+
+function taskRow(k,showDay){
+  return `<div class="row ${k.done?"done":""}">
+    <button class="chk" data-act="toggleTask" data-id="${k.id}" aria-pressed="${!!k.done}" aria-label="Mukammal"></button>
+    <span class="time">${esc(k.time||"--:--")}</span>
+    <div class="grow"><div class="t">${esc(k.title)}</div>${showDay?`<div class="meta">${fmtDay(k.date)}</div>`:""}</div>
+    <span class="cat" style="color:${catColor(k.cat)}">${CATS[k.cat]||k.cat}</span>
+    <button class="x" data-act="delTask" data-id="${k.id}" aria-label="Delete">×</button></div>`;
+}
+const sortTasks=a=>a.slice().sort((x,y)=>(x.date+(x.time||"99")).localeCompare(y.date+(y.time||"99")));
+const catOptions=sel=>Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${k===sel?"selected":""}>${v}</option>`).join("");
+
+/* ---------- views ---------- */
+function vOverview(){
+  const t=today(),tt=sortTasks(S.tasks.filter(k=>k.date===t));const done=tt.filter(k=>k.done).length;
+  const h=S.health[t]||{water:0};const studyMin=S.study.sessions.filter(s=>s.date===t).reduce((a,s)=>a+ +s.mins,0);
+  const habDone=S.habits.filter(x=>x.days&&x.days[t]).length;
+  const next=tt.find(k=>!k.done&&(k.time||"99")>=nowHM())||tt.find(k=>!k.done);
+  const hr=new Date().getHours();const greet=hr<12?"Subah bakhair":hr<17?"Assalam o Alaikum":"Shaam bakhair";
+  const posts=sortTasks(S.social.posts.filter(p=>p.status!=="posted"&&p.date>=t)).slice(0,4);
+  if(isEmpty())return emptyState();
+  return `<div class="grid">
+  <div class="card brief"><div class="eyebrow" style="color:inherit;opacity:.8">Daily briefing · ${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div>
+    <div class="big" style="margin-top:6px">${greet}! Aaj ${tt.length} tasks hain, ${done} ho chuke.</div>
+    <p>${next?`Agla kaam: <b>${esc(next.title)}</b>${next.time?` ${next.time} baje`:""}.`:"Aaj ke sab kaam mukammal. Shabash!"} Pani ${h.water||0}/${S.goals.water} glass, study ${studyMin} min.</p></div>
+  <div class="grid g4">
+    ${kpi("Tasks",done,"/"+tt.length,tt.length?done/tt.length:0)}
+    ${kpi("Pani",h.water||0,"/"+S.goals.water+" glass",(h.water||0)/S.goals.water)}
+    ${kpi("Study aaj",studyMin," min",Math.min(1,studyMin/120))}
+    ${kpi("Habits",habDone,"/"+S.habits.length,S.habits.length?habDone/S.habits.length:0)}
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Aaj ka schedule <button class="btn sm ghost" data-go="schedule">Sab dekhein</button></h2>
+      <div class="list">${tt.length?tt.map(k=>taskRow(k)).join(""):`<p class="note">Aaj koi task nahi. Schedule mein add karein.</p>`}</div></div>
+    <div class="card"><h2>Habits aaj <button class="btn sm ghost" data-go="habits">Manage</button></h2>
+      <div class="list">${S.habits.length?S.habits.map(x=>`<div class="row"><button class="chk" data-act="toggleHabit" data-id="${x.id}" aria-pressed="${!!(x.days&&x.days[t])}" aria-label="Done"></button><div class="grow">${esc(x.name)}</div><span class="meta">${streak(x)} din streak</span></div>`).join(""):`<p class="note">Koi habit nahi. Habits section mein add karein.</p>`}</div></div>
+    <div class="card"><h2>Aane wali posts <button class="btn sm ghost" data-go="social">Planner</button></h2>
+      <div class="list">${posts.length?posts.map(p=>`<div class="row"><span class="time">${esc(p.time||"")}</span><div class="grow"><span class="plat" style="color:var(--c-social)">${esc(p.platform)}</span> · ${esc(p.text.slice(0,60))}<div class="meta">${fmtDay(p.date)}</div></div><span class="status ${p.status}">${p.status}</span></div>`).join(""):`<p class="note">Koi post plan nahi.</p>`}</div></div>
+    <div class="card"><h2>Career goals <button class="btn sm ghost" data-go="career">Kholein</button></h2>
+      <div class="list">${S.career.length?S.career.map(g=>{const p=gp(g);return`<div class="row"><div class="grow">${esc(g.title)}<div class="bar"><i style="width:${p*100}%"></i></div></div><span class="time">${Math.round(p*100)}%</span></div>`}).join(""):`<p class="note">Koi goal nahi.</p>`}</div></div>
+  </div></div>`;
+}
+const kpi=(l,v,suf,p)=>`<div class="card kpi"><div class="lbl">${l}</div><div class="val">${v}<small>${suf}</small></div><div class="bar"><i style="width:${Math.min(1,p)*100}%"></i></div></div>`;
+function emptyState(){
+  return `<div class="empty"><h3>Aap ka AETHER AI tayyar hai</h3>
+  Schedule mein pehla task add karein, ya example data load kar ke dekhein ke dashboard kaisa lagta hai. Example data baad mein ek click mein hata sakte hain.
+  <div class="acts"><button class="btn" data-go="schedule">Pehla task add karein</button><button class="btn ghost" data-act="loadExample">Example data dekhein</button></div></div>`;
+}
+
+function vSchedule(){
+  const t=today();const groups={};
+  sortTasks(S.tasks.filter(k=>k.date>=addDays(t,-1))).forEach(k=>(groups[k.date]=groups[k.date]||[]).push(k));
+  const keys=Object.keys(groups);
+  return `<div class="grid">
+  <div class="card"><h2>Naya task / reminder</h2>
+    <form class="add" data-form="task">
+      <input type="text" id="t-title" name="title" placeholder="Kya karna hai? (e.g. Gym jana)" required>
+      <input type="date" id="t-date" name="date" value="${t}" required>
+      <input type="time" id="t-time" name="time">
+      <select id="t-cat" name="cat">${catOptions("personal")}</select>
+      <select id="t-rep" name="rep"><option value="0">Ek dafa</option><option value="7">Roz (7 din)</option><option value="30">Roz (30 din)</option></select>
+      <button class="btn">Add karein</button>
+    </form>
+    <p class="note">Waqt aane par AETHER AI is page par alert aur awaz deta hai. Phone notification ke liye neeche wala button dabayein.</p>
+    <div style="margin-top:10px"><button class="btn sm ghost" data-act="askNotify">Phone/browser alerts on karein</button></div>
+  </div>
+  ${keys.length?keys.map(d=>`<div class="card"><h2>${fmtDay(d)} <small>${groups[d].filter(k=>k.done).length}/${groups[d].length} done</small></h2><div class="list">${groups[d].map(k=>taskRow(k)).join("")}</div></div>`).join(""):`<div class="empty"><h3>Abhi koi task nahi</h3>Upar form se apna pehla task add karein.</div>`}
+  </div>`;
+}
+
+function vHealth(){
+  const t=today(),h=S.health[t]||{water:0,sleep:"",steps:"",workout:false,mood:null};const days=last7();
+  const water=days.map(d=>(S.health[d]&&S.health[d].water)||0), sleep=days.map(d=>+((S.health[d]&&S.health[d].sleep)||0));
+  return `<div class="grid">
+  <div class="grid g2">
+    <div class="card"><h2>Pani <small>Goal ${S.goals.water} glass</small></h2>
+      <div class="stepper"><button class="btn" data-act="water" data-n="-1" aria-label="Kam">−</button><span class="kpi"><span class="val">${h.water||0}</span></span><button class="btn" data-act="water" data-n="1" aria-label="Zyada">+</button></div>
+      <div class="cups">${Array.from({length:S.goals.water},(_,i)=>`<span class="cup ${i<(h.water||0)?"full":""}"></span>`).join("")}</div></div>
+    <div class="card"><h2>Aaj ka log</h2>
+      <div class="fields">
+        <label class="field">Neend (ghante)<input type="number" min="0" max="24" step="0.5" id="h-sleep" data-health="sleep" value="${esc(h.sleep)}"></label>
+        <label class="field">Qadam (steps)<input type="number" min="0" step="100" id="h-steps" data-health="steps" value="${esc(h.steps)}"></label>
+      </div>
+      <div class="row" style="margin-top:8px"><button class="chk" data-act="workout" aria-pressed="${!!h.workout}" aria-label="Workout"></button><div class="grow">Aaj workout / exercise ki</div></div>
+      <div class="field" style="margin-top:8px">Mood<div class="moods">${MOODS.map((m,i)=>`<button class="mood" data-act="mood" data-n="${i}" aria-pressed="${h.mood===i}">${m}</button>`).join("")}</div></div></div>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h2>Pani, pichle 7 din</h2>${barChart(water,days.map(dayLbl),"var(--c-health)","")}</div>
+    <div class="card"><h2>Neend, pichle 7 din <small>Goal ${S.goals.sleep}h</small></h2>${barChart(sleep,days.map(dayLbl),"var(--c-personal)","h")}</div>
+  </div></div>`;
+}
+
+let pomo={left:25*60,run:null,subj:""};
+function vStudy(){
+  const ws=weekStart();const days=last7();
+  const mins=days.map(d=>S.study.sessions.filter(s=>s.date===d).reduce((a,s)=>a+ +s.mins,0));
+  const subjOpts=S.study.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
+  return `<div class="grid">
+  <div class="grid g2">
+    <div class="card"><h2>Subjects is hafte</h2>
+      <div class="list">${S.study.subjects.length?S.study.subjects.map(s=>{const m=S.study.sessions.filter(x=>x.subj===s.id&&x.date>=ws).reduce((a,x)=>a+ +x.mins,0);const p=m/(s.weeklyGoal*60||1);
+        return `<div class="row"><div class="grow">${esc(s.name)}<div class="bar"><i style="width:${Math.min(1,p)*100}%;background:var(--c-study)"></i></div></div><span class="time">${(m/60).toFixed(1)}/${s.weeklyGoal}h</span><button class="x" data-act="delSubj" data-id="${s.id}" aria-label="Delete">×</button></div>`}).join(""):`<p class="note">Pehle subject add karein.</p>`}</div>
+      <form class="add" data-form="subject"><input type="text" id="s-name" name="name" placeholder="Subject (e.g. Physics)" required><input type="number" id="s-goal" name="goal" min="1" max="80" value="5" style="width:80px" aria-label="Weekly goal hours"><button class="btn">Add</button></form>
+      <p class="note">Number = har hafte kitne ghante parhna hai.</p></div>
+    <div class="card"><h2>Focus timer <small>25 min Pomodoro</small></h2>
+      <div class="pomo" id="pomo">${pad(Math.floor(pomo.left/60))}:${pad(pomo.left%60)}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+        <select id="p-subj" aria-label="Subject">${subjOpts||`<option value="">Subject add karein</option>`}</select>
+        <button class="btn" data-act="pomo">${pomo.run?"Ruk jao":"Shuru karein"}</button>
+        <button class="btn ghost" data-act="pomoReset">Reset</button></div>
+      <form class="add" data-form="session"><select id="l-subj" name="subj" aria-label="Subject">${subjOpts}</select><input type="number" id="l-min" name="mins" min="5" step="5" value="30" style="width:90px" aria-label="Minutes"><button class="btn ghost" ${subjOpts?"":"disabled"}>Session log karein</button></form></div>
+  </div>
+  <div class="card"><h2>Study minutes, pichle 7 din <small>${mins.reduce((a,b)=>a+b,0)} min total</small></h2>${barChart(mins,days.map(dayLbl),"var(--c-study)","m")}</div>
+  </div>`;
+}
+
+const gp=g=>g.milestones.length?g.milestones.filter(m=>m.done).length/g.milestones.length:0;
+function vCareer(){
+  return `<div class="grid">
+  <div class="card"><h2>Naya professional goal</h2><form class="add" data-form="goal"><input type="text" id="g-title" name="title" placeholder="e.g. Frontend developer job lena" required><input type="date" id="g-due" name="due" aria-label="Target date"><button class="btn">Add goal</button></form></div>
+  <div class="grid g2">${S.career.length?S.career.map(g=>`<div class="card"><h2>${esc(g.title)} <button class="x" data-act="delGoal" data-id="${g.id}" aria-label="Delete">×</button></h2>
+    <div class="meta" style="font-size:12px;color:var(--muted)">${g.due?"Target: "+fmtDay(g.due):""} · ${Math.round(gp(g)*100)}% mukammal</div>
+    <div class="bar"><i style="width:${gp(g)*100}%;background:var(--c-work)"></i></div>
+    <div style="margin-top:10px">${g.milestones.map((m,i)=>`<div class="ms"><button class="chk" data-act="toggleMs" data-id="${g.id}" data-n="${i}" aria-pressed="${!!m.done}" aria-label="Done"></button><span class="${m.done?"meta":""}" style="${m.done?"text-decoration:line-through":""}">${esc(m.t)}</span></div>`).join("")}</div>
+    <form class="add" data-form="ms" data-id="${g.id}"><input type="text" id="m-${g.id}" name="t" placeholder="Agla qadam / milestone" required><button class="btn sm">Add</button></form></div>`).join(""):`<div class="empty"><h3>Koi goal nahi</h3>Upar apna career goal likhein, phir usay chhote steps mein todein.</div>`}</div></div>`;
+}
+
+function streak(x){let n=0,d=today();if(!(x.days&&x.days[d]))d=addDays(d,-1);while(x.days&&x.days[d]){n++;d=addDays(d,-1)}return n}
+function vHabits(){
+  const days=last7();
+  return `<div class="grid"><div class="card"><h2>Daily habits <small>Pichle 7 din</small></h2>
+    <div style="overflow-x:auto"><div class="list" style="min-width:420px">${S.habits.map(x=>`<div class="row"><div class="grow">${esc(x.name)}<div class="meta">${streak(x)} din streak</div></div>
+      ${days.map(d=>`<button class="chk" data-act="toggleHabit" data-id="${x.id}" data-d="${d}" aria-pressed="${!!(x.days&&x.days[d])}" title="${d}" aria-label="${esc(x.name)} ${d}"></button>`).join("")}
+      <button class="x" data-act="delHabit" data-id="${x.id}" aria-label="Delete">×</button></div>`).join("")||`<p class="note">Koi habit nahi.</p>`}</div></div>
+    <form class="add" data-form="habit"><input type="text" id="hb-name" name="name" placeholder="e.g. Namaz, Quran, 10 min reading" required><button class="btn">Add habit</button></form></div></div>`;
+}
+
+function vSocial(){
+  const t=today();
+  return `<div class="grid">
+  <div class="card"><h2>Accounts <small>Followers khud update karein</small></h2>
+    <div class="list">${S.social.accounts.map(a=>{const h=a.history||[];const cur=h.length?+h[h.length-1].followers:0;const first=h.length?+h[0].followers:0;const diff=cur-first;
+      return `<div class="row"><div class="grow"><span class="plat" style="color:var(--c-social)">${esc(a.platform)}</span> <span class="meta">${esc(a.handle)}</span><div class="kpi"><span class="val" style="font-size:20px">${cur.toLocaleString()}</span> <small class="meta" style="color:${diff>=0?"var(--ok)":"var(--bad)"}">${diff>=0?"+":""}${diff.toLocaleString()} shuru se</small></div></div>${spark(h)}
+      <form class="add" data-form="followers" data-id="${a.id}" style="margin:0"><input type="number" id="f-${a.id}" name="n" min="0" placeholder="Naye followers" style="width:120px" aria-label="Followers today"><button class="btn sm">Update</button></form>
+      <button class="x" data-act="delAcc" data-id="${a.id}" aria-label="Delete">×</button></div>`}).join("")||`<p class="note">Apne Instagram, Facebook, LinkedIn, X ya WhatsApp accounts add karein.</p>`}</div>
+    <form class="add" data-form="account"><select id="a-plat" name="platform">${PLATFORMS.map(p=>`<option>${p}</option>`).join("")}</select><input type="text" id="a-handle" name="handle" placeholder="@username" required><input type="number" id="a-f" name="f" min="0" placeholder="Followers" style="width:110px"><button class="btn">Add account</button></form></div>
+  <div class="card"><h2>Post planner</h2>
+    <form class="add" data-form="post"><select id="p-plat" name="platform">${PLATFORMS.map(p=>`<option>${p}</option>`).join("")}</select><input type="date" id="p-date" name="date" value="${t}" required><input type="time" id="p-time" name="time"><textarea id="p-text" name="text" placeholder="Post ka caption likhein…" required></textarea><button class="btn">Post plan karein</button></form>
+    <div class="list" style="margin-top:12px">${sortTasks(S.social.posts).map(p=>`<div class="row"><span class="time">${esc(p.time||"--:--")}</span><div class="grow"><span class="plat" style="color:var(--c-social)">${esc(p.platform)}</span> · <span class="meta">${fmtDay(p.date)}</span><div>${esc(p.text)}</div></div>
+      <button class="status ${p.status}" data-act="cyclePost" data-id="${p.id}" title="Status badlein">${p.status}</button>
+      <button class="btn sm ghost" data-act="copyPost" data-id="${p.id}">Copy</button>
+      <button class="x" data-act="delPost" data-id="${p.id}" aria-label="Delete">×</button></div>`).join("")||`<p class="note">Koi post plan nahi.</p>`}</div>
+    <p class="note">Status par click karein: draft → scheduled → posted. "Scheduled" post ke waqt AETHER AI alert dega; caption copy kar ke app mein paste karein. Seedha auto-post karne ke liye har platform ki API connect karni hogi (agla phase).</p></div>
+  </div>`;
+}
+
+/* ---------- render ---------- */
+const VIEWS={overview:vOverview,schedule:vSchedule,health:vHealth,study:vStudy,career:vCareer,habits:vHabits,social:vSocial};
+function render(){
+  const rail=document.getElementById("rail");
+  rail.innerHTML=`<div class="brand"><span class="brand-dot"></span>AETHER AI</div>`+SECTIONS.map(s=>`<button class="nav" data-go="${s.id}" ${s.id===view?'aria-current="page"':""}><span class="sw"></span>${s.label}</button>`).join("")+`<div class="rail-foot">Aap ka personal assistant</div>`;
+  const sec=SECTIONS.find(s=>s.id===view);
+  document.getElementById("main").innerHTML=`<div class="top"><div><div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"short",year:"numeric"})}</div><h1>${sec.label}</h1></div><div class="sync" id="sync"></div></div>
+  ${S.example?`<div class="example-flag">Ye example data hai, aap ka asal data nahi. <button class="btn sm ghost" data-act="clearExample">Example hatayein</button></div>`:""}
+  ${VIEWS[view]()}`;
+  setSync();
+}
+
+/* ---------- events ---------- */
+const find=(arr,id)=>arr.find(x=>x.id===id);
+document.addEventListener("click",e=>{
+  const go=e.target.closest("[data-go]");
+  if(go){view=go.dataset.go;try{localStorage.setItem("aether-view",view)}catch(_){}render();window.scrollTo(0,0);return}
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const id=b.dataset.id,n=+b.dataset.n,t=today();
+  switch(b.dataset.act){
+    case"toggleTask":{const k=find(S.tasks,id);k.done=!k.done;break}
+    case"delTask":S.tasks=S.tasks.filter(k=>k.id!==id);break;
+    case"water":{const h=hd();h.water=Math.max(0,(h.water||0)+n);if(h.water===S.goals.water)toast("Shabash!","Aaj ka pani ka goal pura ho gaya.");break}
+    case"workout":{const h=hd();h.workout=!h.workout;break}
+    case"mood":{const h=hd();h.mood=n;break}
+    case"delSubj":S.study.subjects=S.study.subjects.filter(s=>s.id!==id);break;
+    case"pomo":togglePomo();return;
+    case"pomoReset":clearInterval(pomo.run);pomo={left:25*60,run:null};render();return;
+    case"delGoal":S.career=S.career.filter(g=>g.id!==id);break;
+    case"toggleMs":{const m=find(S.career,id).milestones[n];m.done=!m.done;break}
+    case"toggleHabit":{const x=find(S.habits,id);x.days=x.days||{};const d=b.dataset.d||t;if(x.days[d])delete x.days[d];else x.days[d]=true;break}
+    case"delHabit":S.habits=S.habits.filter(x=>x.id!==id);break;
+    case"delAcc":S.social.accounts=S.social.accounts.filter(a=>a.id!==id);break;
+    case"cyclePost":{const p=find(S.social.posts,id);const o=["draft","scheduled","posted"];p.status=o[(o.indexOf(p.status)+1)%3];p.notified=false;break}
+    case"delPost":S.social.posts=S.social.posts.filter(p=>p.id!==id);break;
+    case"copyPost":{const p=find(S.social.posts,id);navigator.clipboard.writeText(p.text).then(()=>toast("Copy ho gaya","Ab app mein paste karein."),()=>toast("Copy nahi hua","Text select kar ke khud copy karein."));return}
+    case"askNotify":askNotify();return;
+    case"loadExample":S=exampleData();break;
+    case"clearExample":S=blank();break;
+    default:return;
+  }
+  save();render();
+});
+document.addEventListener("change",e=>{
+  const f=e.target.dataset.health;if(!f)return;hd()[f]=e.target.value;save();
+});
+document.addEventListener("submit",e=>{
+  e.preventDefault();const f=e.target,d=Object.fromEntries(new FormData(f)),fid=f.dataset.id;
+  switch(f.dataset.form){
+    case"task":{const rep=+d.rep||0;const cnt=Math.max(1,rep);for(let i=0;i<cnt;i++)S.tasks.push({id:uid(),title:d.title.trim(),date:addDays(d.date,i),time:d.time,cat:d.cat,done:false});toast("Task add ho gaya",d.title+(d.time?" · "+d.time:""));break}
+    case"subject":S.study.subjects.push({id:uid(),name:d.name.trim(),weeklyGoal:+d.goal||5});break;
+    case"session":if(!d.subj)return;S.study.sessions.push({id:uid(),subj:d.subj,date:today(),mins:+d.mins||0});toast("Session save","Parhai ka waqt log ho gaya.");break;
+    case"goal":S.career.push({id:uid(),title:d.title.trim(),due:d.due,milestones:[]});break;
+    case"ms":find(S.career,fid).milestones.push({t:d.t.trim(),done:false});break;
+    case"habit":S.habits.push({id:uid(),name:d.name.trim(),days:{}});break;
+    case"account":S.social.accounts.push({id:uid(),platform:d.platform,handle:d.handle.trim(),history:d.f!==""?[{date:today(),followers:+d.f}]:[]});break;
+    case"followers":{if(d.n==="")return;const a=find(S.social.accounts,fid);a.history=(a.history||[]).filter(h=>h.date!==today());a.history.push({date:today(),followers:+d.n});break}
+    case"post":S.social.posts.push({id:uid(),platform:d.platform,date:d.date,time:d.time,text:d.text.trim(),status:"scheduled"});break;
+    default:return;
+  }
+  save();render();
+});
+
+function togglePomo(){
+  if(pomo.run){clearInterval(pomo.run);pomo.run=null;render();return}
+  pomo.subj=(document.getElementById("p-subj")||{}).value||"";
+  pomo.run=setInterval(()=>{
+    pomo.left--;const el=document.getElementById("pomo");if(el)el.textContent=pad(Math.floor(pomo.left/60))+":"+pad(pomo.left%60);
+    if(pomo.left<=0){clearInterval(pomo.run);pomo.run=null;pomo.left=25*60;
+      if(pomo.subj){S.study.sessions.push({id:uid(),subj:pomo.subj,date:today(),mins:25});save()}
+      notify("Focus session mukammal","25 minute ho gaye. 5 minute break lein.");render()}
+  },1000);render();
+}
+async function askNotify(){
+  beep();
+  try{
+    if(!("Notification" in window))throw 0;
+    const r=await Notification.requestPermission();
+    if(r==="granted"){toast("Alerts on","Ab browser notification bhi aayegi.");return}
+    throw 0;
+  }catch(_){toast("Sirf page par alerts","Ye browser yahan notification allow nahi karta. Jab tak page khula hai, AETHER AI yahin alert aur awaz dega.")}
+}
+
+function exampleData(){
+  const t=today(),y=addDays(t,-1),s=blank();s.example=true;
+  const tk=(title,date,time,cat,done)=>({id:uid(),title,date,time,cat,done,notified:done});
+  s.tasks=[tk("Fajr aur subah ki walk",t,"06:00","health",true),tk("Physics chapter 4 revise",t,"09:00","study",true),tk("Client email ka jawab",t,"11:30","work",false),
+    tk("LinkedIn post publish",t,"14:00","social",false),tk("Gym",t,"18:30","health",false),tk("Ammi ke saath dinner",t,"20:30","personal",false),tk("Portfolio website update",addDays(t,1),"10:00","work",false)];
+  last7().forEach((d,i)=>s.health[d]={water:[5,7,8,6,4,8,3][i],sleep:[6,7,7.5,5.5,8,7,6.5][i],steps:[5400,7200,9100,4300,8000,10200,3100][i],workout:i%2===0,mood:[2,3,3,1,4,3,3][i]});
+  const ph={id:uid(),name:"Physics",weeklyGoal:6},en={id:uid(),name:"English",weeklyGoal:3},cs={id:uid(),name:"Web Development",weeklyGoal:8};
+  s.study.subjects=[ph,en,cs];
+  last7().forEach((d,i)=>{s.study.sessions.push({id:uid(),subj:[ph,cs,en][i%3].id,date:d,mins:[45,60,30,90,50,75,40][i]})});
+  s.career=[{id:uid(),title:"Frontend developer job",due:addDays(t,90),milestones:[{t:"React course khatam",done:true},{t:"3 portfolio projects",done:true},{t:"CV update",done:false},{t:"10 jobs par apply",done:false}]},
+    {id:uid(),title:"LinkedIn par 1,000 followers",due:addDays(t,60),milestones:[{t:"Profile optimize",done:true},{t:"Hafte mein 3 posts",done:false}]}];
+  const days={};last7().slice(0,6).forEach(d=>days[d]=true);
+  s.habits=[{id:uid(),name:"Paanch waqt namaz",days},{id:uid(),name:"20 min reading",days:{[y]:true,[addDays(t,-2)]:true}},{id:uid(),name:"Raat 11 baje phone band",days:{}}];
+  const hist=(a)=>last7().map((d,i)=>({date:d,followers:a[i]}));
+  s.social.accounts=[{id:uid(),platform:"Instagram",handle:"@example.user",history:hist([1210,1225,1231,1250,1262,1280,1301])},
+    {id:uid(),platform:"LinkedIn",handle:"Example User",history:hist([640,648,651,660,672,675,690])},
+    {id:uid(),platform:"X",handle:"@example",history:hist([310,309,315,318,320,322,330])}];
+  s.social.posts=[{id:uid(),platform:"LinkedIn",date:t,time:"14:00",text:"Aaj maine apna teesra React project complete kiya. Seekhne ka safar jari hai!",status:"scheduled"},
+    {id:uid(),platform:"Instagram",date:addDays(t,1),time:"19:00",text:"Study setup tour reel",status:"draft"},
+    {id:uid(),platform:"X",date:y,time:"12:00",text:"Productivity tip: kaam ko 25 minute ke blocks mein todein.",status:"posted"}];
+  return s;
+}
+boot();
+</script>
+
+</body>
+</html>
