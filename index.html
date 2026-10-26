@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b18">
+<meta name="description" content="AETHER AI - your personal assistant dashboard with voice, smart AI and a WhatsApp helper.">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -275,7 +277,82 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .toast b{display:block;font-family:var(--f-display);font-size:14px}
 .toast span{font-size:13px;opacity:.85}
 .toast button{margin-left:auto;background:none;border:0;color:inherit;cursor:pointer;font-size:18px;opacity:.7}
-@media (max-width:600px){.card{padding:16px}.hero{padding:20px}.tab{padding:9px 12px}.tab span{font-size:14px}}
+/* avatar + menu */
+.avatar{width:40px;height:40px;border-radius:12px;border:0;cursor:pointer;display:grid;place-items:center;font-family:var(--f-display);font-weight:700;color:#fff;background:linear-gradient(135deg,var(--a1),var(--a2) 60%,var(--a3));box-shadow:0 6px 18px var(--glow)}
+.menu{position:absolute;right:0;top:48px;z-index:35;min-width:230px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.3);padding:8px}
+.menu .who{padding:10px 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.menu .who b{display:block}.menu .who span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.menu button{display:flex;width:100%;align-items:center;gap:10px;padding:10px 12px;border:0;background:none;border-radius:10px;cursor:pointer;font-weight:600;text-align:left}
+.menu button:hover{background:var(--surface-2)}
+.menu svg{width:17px;height:17px;color:var(--muted)}
+.top-actions{position:relative}
+
+/* onboarding */
+.onboard{position:fixed;inset:0;z-index:60;display:grid;place-items:center;overflow-y:auto;padding:24px max(16px,env(safe-area-inset-left,0px));background:radial-gradient(1200px 600px at 10% -10%,color-mix(in srgb,var(--a1) 35%,transparent),transparent),radial-gradient(900px 600px at 110% 10%,color-mix(in srgb,var(--a2) 35%,transparent),transparent),radial-gradient(800px 500px at 50% 120%,color-mix(in srgb,var(--a3) 25%,transparent),transparent),var(--bg)}
+.ob-card{width:min(440px,100%);background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:26px;padding:32px 28px;box-shadow:0 30px 80px rgba(0,0,0,.25);text-align:center}
+@media (prefers-reduced-motion:no-preference){.ob-card{animation:vain .6s cubic-bezier(.2,1.1,.4,1)}}
+.ob-orb{width:92px;height:92px;margin:0 auto 18px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,transparent 32%),conic-gradient(from 90deg,var(--a1),var(--a2),var(--a3),var(--a1));box-shadow:0 14px 40px var(--glow)}
+@media (prefers-reduced-motion:no-preference){.ob-orb{animation:breathe 3s ease-in-out infinite}}
+.ob-card h1{font-size:26px}
+.ob-card p{color:var(--muted);margin:8px 0 22px}
+.ob-card form{display:flex;flex-direction:column;gap:14px;text-align:left}
+.ob-card .inp{width:100%;padding:13px 14px;font-size:16px}
+.ob-card .btn{justify-content:center;padding:14px;font-size:16px}
+.ob-perks{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:18px}
+.ob-perks span{font-size:12px;font-weight:600;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+.err{color:var(--bad);font-size:12px;font-weight:600;min-height:1em}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:55;display:grid;place-items:center;padding:16px;background:rgba(5,8,20,.55);backdrop-filter:blur(4px)}
+.modal-card{width:min(520px,100%);max-height:calc(100vh - 32px);overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+@media (prefers-reduced-motion:no-preference){.modal-card{animation:vain .3s cubic-bezier(.2,1.2,.4,1)}}
+.modal-card h2{font-size:20px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.ai-status{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);font-size:13px}
+.ai-status i{width:10px;height:10px;border-radius:50%;flex:none}
+
+/* AI tip + whatsapp */
+.tip{display:flex;gap:14px;align-items:flex-start}
+.tip-icon{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--a3),var(--a2))}
+.tip-icon svg{width:20px;height:20px}
+.tip p{margin:0;max-width:65ch}
+.wa-hero{background:linear-gradient(125deg,#065f46,#16a34a 60%,#22c55e);color:#fff;border:0}
+.wa-hero .note,.wa-hero p{color:rgba(255,255,255,.9)}
+.wa-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;border-radius:12px;padding:9px 14px;font-weight:700;background:#16a34a;color:#fff;white-space:nowrap}
+.wa-link:hover{filter:brightness(1.1)}
+.wa-link svg{width:16px;height:16px}
+.tmpls{display:flex;gap:8px;flex-wrap:wrap}
+.msg a.wa-link{margin-top:8px}
+.toast a{color:inherit;font-weight:700}
+
+/* phone & small tablet: tabs become a bottom bar */
+@media (max-width:760px){
+  header.top{padding-block:12px 4px}
+  .logo small{display:none}
+  .logo-mark{width:34px;height:34px;border-radius:10px}
+  .logo b{font-size:17px}
+  #sync{padding:6px 9px;font-size:0;gap:0}
+  #sync .dot{width:9px;height:9px}
+  .icon-btn,.avatar{width:36px;height:36px;border-radius:10px}
+  .tabs-wrap{position:fixed;top:auto;left:0;right:0;bottom:0;z-index:25;padding:0}
+  .tabs-wrap .tabs{border-radius:0;border-width:1px 0 0;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));gap:2px;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
+  .tab{flex:1 0 64px;flex-direction:column;gap:3px;padding:8px 4px;font-size:11px}
+  .tab span{font-size:11px}
+  .tab svg{width:20px;height:20px}
+  .tab-ink{top:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+  main{padding-block:12px 170px}
+  .fab{bottom:calc(86px + env(safe-area-inset-bottom,0px));right:calc(14px + env(safe-area-inset-right,0px));width:56px;height:56px}
+  .va{inset:auto 0 0 0;width:100%;max-height:88vh;border-radius:22px 22px 0 0;transform-origin:bottom center}
+  .hero-in{flex-direction:column-reverse;align-items:flex-start}
+  .hero .ring{width:96px!important;height:96px!important}
+  .hero .ring svg{width:96px;height:96px}
+  .page-head h1{font-size:24px}
+  form.add>.inp,form.add>select.inp{flex:1 1 100%}
+  form.add>.btn{flex:1 1 auto;justify-content:center}
+  .toasts{top:calc(10px + env(safe-area-inset-top,0px))}
+}
+@media (max-width:600px){.card{padding:16px}.hero{padding:20px}.kpi .k-val{font-size:22px}.timer{font-size:32px}}
+@media (min-width:1400px){.wrap{max-width:1360px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -287,6 +364,8 @@ input[type=range]{width:100%;accent-color:var(--a2)}
       <span class="chip" id="sync"><span class="dot"></span>Starting…</span>
       <button class="icon-btn" id="themeBtn" aria-label="Switch light or dark mode"></button>
       <button class="icon-btn" data-act="alerts" aria-label="Turn on alerts" title="Turn on alerts"></button>
+      <button class="avatar" id="avatarBtn" aria-label="Your profile" aria-haspopup="true" aria-expanded="false">A</button>
+      <div class="menu" id="menu" hidden></div>
     </div>
   </header>
   <div class="tabs-wrap"><nav class="tabs" id="tabs" role="tablist" aria-label="Sections"><span class="tab-ink" id="ink"></span></nav></div>
@@ -307,6 +386,23 @@ input[type=range]{width:100%;accent-color:var(--a2)}
   <form class="va-input" id="vaForm"><input class="inp wide" id="vaText" placeholder="Or type here, e.g. add task gym at 6 pm" autocomplete="off"><button class="btn" aria-label="Send">Send</button></form>
 </section>
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="onboard" id="onboard" hidden>
+  <div class="ob-card">
+    <div class="ob-orb" aria-hidden="true"></div>
+    <div class="eyebrow">Welcome to</div>
+    <h1>AETHER AI</h1>
+    <p>Your personal assistant for your day, health, study, career and messages. Tell us who you are to get started.</p>
+    <form id="obForm" novalidate>
+      <label class="field">Your name<input class="inp" id="ob-name" name="name" autocomplete="name" placeholder="e.g. Muneeb" required></label>
+      <label class="field">Your email<input class="inp" id="ob-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+      <div class="err" id="obErr" role="alert"></div>
+      <button class="btn" id="obBtn">Open my dashboard</button>
+    </form>
+    <div class="ob-perks"><span>Voice assistant</span><span>Smart AI</span><span>WhatsApp helper</span><span>Reminders</span></div>
+    <p class="note" style="margin:16px auto 0;text-align:center">Your details are saved only on this device.</p>
+  </div>
+</div>
+<div class="modal" id="modal" hidden></div>
 
 <script>
 /* ---------- icons ---------- */
@@ -328,7 +424,13 @@ const P={
   vol:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>',
   mute:'<path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/>',
   copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>',
-  play:'<path d="M7 4l13 8-13 8z"/>', pause:'<path d="M7 4h4v16H7zM14 4h4v16h-4z"/>'
+  play:'<path d="M7 4l13 8-13 8z"/>', pause:'<path d="M7 4h4v16H7zM14 4h4v16h-4z"/>',
+  wa:'<path d="M3 21l1.6-4.7A8.5 8.5 0 1 1 8 19.6z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1.2-1.4-2-1-1 .8a4 4 0 0 1-2-2l.8-1-1-2z"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
 };
 const ic=(n,extra="")=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${P[n]}</svg>`;
 
@@ -341,13 +443,15 @@ const SECTIONS=[
   {id:"career",label:"Career",icon:"brief",sub:"Big goals, broken into small steps."},
   {id:"habits",label:"Habits",icon:"repeat",sub:"Small daily habits build big results."},
   {id:"social",label:"Social",icon:"share",sub:"Plan posts and watch your followers grow."},
+  {id:"whatsapp",label:"WhatsApp",icon:"wa",sub:"Ready-made messages, scheduled on time, sent in one tap."},
 ];
+const WA_TEMPLATES=[["Good morning","Good morning! Hope you have a great day."],["Running late","Sorry, I am running a little late. I will be there soon."],["Meeting reminder","Hi! Just a reminder about our meeting today."],["Birthday","Happy birthday! Wishing you a wonderful year ahead."],["Thank you","Thank you so much for your help. I really appreciate it."]];
 const CATS={study:"Study",health:"Health",work:"Work",personal:"Personal",social:"Social"};
 const PLATFORMS={Instagram:"#d6297a",Facebook:"#1877f2",LinkedIn:"#0a66c2",X:"#111827",WhatsApp:"#16a34a"};
 const MOODS=[["Bad","var(--bad)"],["Low","var(--warm)"],["Okay","var(--muted)"],["Good","var(--c-study)"],["Great","var(--ok)"]];
 const STEP_GOAL=8000;
 
-const blank=()=>({tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},example:false});
+const blank=()=>({profile:null,tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},wa:{contacts:[],scheduled:[]},example:false});
 let S=blank(), view="home", schedFilter="today", store={kind:"none"}, pendingSave=null, saving=Promise.resolve(), dirty=false, animate=true;
 
 const pad=n=>String(n).padStart(2,"0");
@@ -374,7 +478,7 @@ const isEmpty=()=>!S.tasks.length&&!S.study.subjects.length&&!S.career.length&&!
 
 /* ---------- storage ---------- */
 function normalize(d){const b=blank();d=d&&typeof d==="object"?d:{};
-  return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})}}}
+  return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})},wa:{...b.wa,...(d.wa||{})}}}
 function save(){
   dirty=true;clearTimeout(pendingSave);
   pendingSave=setTimeout(()=>{
@@ -408,8 +512,111 @@ async function boot(){
   }
   try{const v=localStorage.getItem("aether-view");if(v&&SECTIONS.some(s=>s.id===v))view=v}catch(e){}
   if(location.hash&&SECTIONS.some(s=>"#"+s.id===location.hash))view=location.hash.slice(1);
-  setSync();go(view);startAlerts();
+  setSync();go(view);paintProfile();startAlerts();
+  if(!S.profile)showOnboard();
+  initAI();
 }
+
+/* ---------- profile ---------- */
+const initials=n=>(n||"").trim().split(/\s+/).filter(w=>/^[\p{L}\p{N}]/u.test(w)).map(w=>w[0]).slice(0,2).join("").toUpperCase()||"A";
+const firstName=()=>((S.profile&&S.profile.name)||"").trim().split(/\s+/)[0]||"";
+const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+function paintProfile(){document.getElementById("avatarBtn").textContent=initials(S.profile&&S.profile.name)}
+function showOnboard(edit){
+  const ob=document.getElementById("onboard");ob.hidden=false;
+  document.getElementById("ob-name").value=(S.profile&&S.profile.name)||"";
+  document.getElementById("ob-email").value=(S.profile&&S.profile.email)||"";
+  document.getElementById("obBtn").textContent=edit?"Save changes":"Open my dashboard";
+  ob.querySelector(".note").textContent=store.kind==="db"?"Your details are saved to your account.":"Your details are saved only on this device.";
+  setTimeout(()=>document.getElementById("ob-name").focus(),50);
+}
+document.getElementById("obForm").onsubmit=e=>{
+  e.preventDefault();const name=document.getElementById("ob-name").value.trim(),email=document.getElementById("ob-email").value.trim(),err=document.getElementById("obErr");
+  if(name.length<2){err.textContent="Please enter your name.";return}
+  if(!validEmail(email)){err.textContent="Please enter a valid email, like name@gmail.com.";return}
+  err.textContent="";const isNew=!S.profile;S.profile={name,email,since:S.profile&&S.profile.since||today()};save();paintProfile();
+  document.getElementById("onboard").hidden=true;animate=true;render();
+  toast(isNew?"Welcome, "+firstName()+"!":"Profile saved",isNew?"Your dashboard is ready. Tap the round button to talk to Aether.":"Your details are updated.");
+};
+const menu=document.getElementById("menu"),avatarBtn=document.getElementById("avatarBtn");
+avatarBtn.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;avatarBtn.setAttribute("aria-expanded",open);
+  if(open){menu.innerHTML=`<div class="who"><b></b><span></span></div><button data-act="editProfile">${ic("user")}Edit profile</button><button data-act="openSettings">${ic("spark")}AI settings</button><button data-act="signOut">${ic("out")}Sign out</button>`;
+    menu.querySelector(".who b").textContent=(S.profile&&S.profile.name)||"Guest";menu.querySelector(".who span").textContent=(S.profile&&S.profile.email)||""}};
+document.addEventListener("click",e=>{if(!menu.hidden&&!e.target.closest("#menu,#avatarBtn"))menu.hidden=true},true);
+
+/* ---------- smarter AI ---------- */
+const AI_MODEL="claude-opus-5-5";
+let aiSample=null,aiClient=null,aiKey="",aiHistory=[];
+try{aiKey=localStorage.getItem("aether-ai-key")||""}catch(e){}
+async function initAI(){try{aiSample=await window.claude?.use?.("sample")}catch(e){aiSample=null}}
+const aiMode=()=>aiSample?"claude":aiKey?"key":"basic";
+async function getClient(){
+  if(aiClient)return aiClient;
+  const mod=await import("https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.133.0/+esm");
+  const Anthropic=mod.default||mod.Anthropic;
+  aiClient=new Anthropic({apiKey:aiKey,dangerouslyAllowBrowser:true});return aiClient;
+}
+function aiContext(){
+  const t=today(),tt=todayTasks(),h=H();
+  return {now:new Date().toString(),user:firstName()||"the user",today:t,
+    tasksToday:tt.map(k=>({title:k.title,time:k.time,type:k.cat,done:k.done})),
+    upcoming:sortT(S.tasks.filter(k=>k.date>t&&!k.done)).slice(0,8).map(k=>({title:k.title,date:k.date,time:k.time})),
+    health:{water:h.water||0,waterGoal:S.goals.water,sleep:h.sleep||null,steps:h.steps||null,exercised:!!h.workout,mood:h.mood!=null?MOODS[h.mood][0]:null},
+    studyMinutesToday:studyMins(t),subjects:S.study.subjects.map(s=>s.name),
+    goals:S.career.map(g=>({title:g.title,progress:Math.round(gp(g)*100)+"%",nextStep:(g.milestones.find(m=>!m.done)||{}).t||null})),
+    habits:S.habits.map(x=>({name:x.name,doneToday:!!(x.days&&x.days[t]),streak:streak(x)})),
+    whatsappContacts:S.wa.contacts.map(c=>c.name)};
+}
+const AI_SYSTEM=`You are Aether, a friendly personal assistant inside the AETHER AI dashboard. The user may not be technical, so always answer in short, simple English (1-3 sentences, no markdown, no lists unless asked). You can answer any general question, give advice, and you can also change the dashboard by returning actions.
+Reply with ONLY a JSON object, no other text: {"reply": "what you say to the user", "actions": [ ... ]}
+Allowed actions (use [] if none):
+{"type":"add_task","title":"...","date":"YYYY-MM-DD","time":"HH:MM or empty","category":"study|health|work|personal|social"}
+{"type":"add_water","glasses":1}
+{"type":"set_sleep","hours":7}
+{"type":"set_steps","steps":5000}
+{"type":"add_habit","name":"..."}
+{"type":"open_tab","tab":"home|schedule|health|study|career|habits|social|whatsapp"}
+{"type":"whatsapp","contact":"name from the contact list or empty","phone":"digits with country code or empty","message":"..."}
+Only add an action when the user clearly asks for that change. Use the dashboard data to give personal answers.`;
+async function askAI(text){
+  const ctx="Dashboard data (JSON): "+JSON.stringify(aiContext());
+  const msgs=[...aiHistory.slice(-8),{role:"user",content:ctx+"\n\nUser says: "+text}];
+  let raw="";
+  if(aiSample){
+    const r=await aiSample([{role:"user",content:AI_SYSTEM+"\n\n"+msgs.map(m=>(m.role==="user"?"User":"Aether")+": "+m.content).join("\n\n")}],{modelTier:"quick",cache:false});
+    raw=r.text||"";
+  }else{
+    const client=await getClient();
+    const res=await client.beta.messages.create({model:AI_MODEL,max_tokens:2000,betas:["server-side-fallback-2026-07-01"],fallbacks:"default",output_config:{effort:"low"},system:AI_SYSTEM,messages:msgs});
+    if(res.stop_reason==="refusal")return {reply:"Sorry, I can't help with that one. Try asking another way.",actions:[]};
+    raw=res.content.filter(b=>b.type==="text").map(b=>b.text).join("");
+  }
+  let out;try{out=JSON.parse(raw.slice(raw.indexOf("{"),raw.lastIndexOf("}")+1))}catch(e){out={reply:raw.trim()||"Sorry, I didn't get that.",actions:[]}}
+  aiHistory.push({role:"user",content:text},{role:"assistant",content:out.reply||""});
+  return out;
+}
+function runActions(actions){
+  const links=[];let changed=false;
+  for(const a of (Array.isArray(actions)?actions:[])){
+    try{switch(a.type){
+      case"add_task":if(a.title){addTask(String(a.title),/^\d{4}-\d{2}-\d{2}$/.test(a.date||"")?a.date:today(),/^\d{2}:\d{2}$/.test(a.time||"")?a.time:"",CATS[a.category]?a.category:guessCat(a.title));changed=true}break;
+      case"add_water":addWater(Math.max(1,Math.min(10,+a.glasses||1)));changed=true;break;
+      case"set_sleep":if(+a.hours>=0&&+a.hours<=24){hd().sleep=String(+a.hours);changed=true}break;
+      case"set_steps":if(+a.steps>=0){hd().steps=String(Math.round(+a.steps));changed=true}break;
+      case"add_habit":if(a.name){S.habits.push({id:uid(),name:String(a.name),days:{}});changed=true}break;
+      case"open_tab":if(VIEWS[a.tab])go(a.tab);break;
+      case"whatsapp":{const c=a.contact&&findContact(a.contact);const phone=(c&&c.phone)||a.phone||"";links.push({label:"Open WhatsApp"+(c?" to "+c.name:""),href:waLink(phone,a.message||"")});break}
+    }}catch(e){}
+  }
+  if(changed){save();render()}
+  return links;
+}
+
+/* ---------- whatsapp helpers ---------- */
+const digits=p=>String(p||"").replace(/\D/g,"");
+const waLink=(phone,text)=>"https://wa.me/"+digits(phone)+(text?"?text="+encodeURIComponent(text):"");
+const findContact=q=>{q=String(q).toLowerCase().trim();return S.wa.contacts.find(c=>c.name.toLowerCase()===q)||S.wa.contacts.find(c=>c.name.toLowerCase().includes(q)||q.includes(c.name.toLowerCase()))};
+const waA=(href,label)=>`<a class="wa-link" href="${esc(href)}" target="_blank" rel="noopener">${ic("wa")}${esc(label)}</a>`;
 
 /* ---------- theme ---------- */
 function curTheme(){const t=document.documentElement.dataset.theme;if(t)return t;return matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}
@@ -440,7 +647,7 @@ function go(v){
 /* ---------- small components ---------- */
 function ring(p,size,stroke,color,label,small){
   const r=(size-stroke)/2,c=2*Math.PI*r,off=c*(1-Math.max(0,Math.min(1,p)));
-  return `<div class="ring" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}"><circle class="bg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}" stroke="${color}" stroke-dasharray="${c}" style="--off:${off};--full:${c}"/></svg>${label!=null?`<div class="lbl"><b>${label}</b>${small?`<small>${small}</small>`:""}</div>`:""}</div>`;
+  return `<div class="ring" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle class="bg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"/><circle class="fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}" stroke="${color}" stroke-dasharray="${c}" style="--off:${off};--full:${c}"/></svg>${label!=null?`<div class="lbl"><b>${label}</b>${small?`<small>${small}</small>`:""}</div>`:""}</div>`;
 }
 function barChart(values,labels,color,unit,goal){
   const W=340,Hh=150,L=30,B=22,T=12;const max=Math.max(1,goal||0,...values);const top=Math.ceil(max);
@@ -484,7 +691,7 @@ function vHome(){
   return `${isEmpty()?`<div class="callout rise" style="margin-bottom:16px"><p><b>New here?</b> Load sample data to see how AETHER works. You can remove it with one click later. Or tap the round button and say <b>"help"</b>.</p><button class="btn" data-act="loadExample">Show sample data</button></div>`:""}
   <section class="card hero rise"><div class="hero-in"><div>
     <div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div>
-    <h1 style="margin-top:6px">${greet}!</h1>
+    <h1 style="margin-top:6px">${greet}${firstName()?", "+esc(firstName()):""}!</h1>
     <p>${tt.length?`You have <b>${tt.length}</b> tasks today and <b>${done}</b> are done.`:"You have no tasks today."} ${next?`Next: <b>${esc(next.title)}</b>${next.time?` at ${fmtTime(next.time)}`:""}.`:tt.length?"Everything is done. Great work!":""}</p>
     <div class="hero-acts"><button class="btn-hero" data-act="openVoice">${ic("mic")}Talk to Aether</button><button class="btn-hero alt" data-go="schedule">${ic("plus")}Add a task</button></div>
   </div>${ring(dayP/100,128,12,"#fff",dayP+"%","of your day")}</div></section>
@@ -494,6 +701,7 @@ function vHome(){
     ${kpiCard("Study",sm," min",sm/60,"var(--c-study)","goal 60 min",180)}
     ${kpiCard("Habits",habDone,"/"+S.habits.length,S.habits.length?habDone/S.habits.length:0,"var(--c-personal)","done today",240)}
   </div>
+  <section class="card rise" style="margin-top:16px;animation-delay:260ms"><div class="tip"><div class="tip-icon">${ic("spark")}</div><div class="grow"><div class="card-h" style="margin-bottom:6px"><h2>Aether's tip for you</h2><button class="btn ghost sm" data-act="newTip">${ic("spark")}New tip</button></div><p id="tipText">${esc(tipText||localTip())}</p></div></div></section>
   <div class="grid home-main" style="margin-top:16px">
     ${card("Today's plan",`${done}/${tt.length} done`,`<div class="list">${timeline||`<div class="empty"><b>No tasks yet</b>Add one in Schedule, or say "add task gym at 6 pm".</div>`}</div>`,"",280)}
     <div class="grid">
@@ -505,6 +713,16 @@ function vHome(){
     ${card("Upcoming posts","",`<div class="list">${posts.map(p=>`<div class="row"><span class="plat-badge" style="background:${PLATFORMS[p.platform]};width:32px;height:32px;font-size:12px;border-radius:9px">${p.platform[0]}</span><div class="grow">${esc(p.text.slice(0,70))}<div class="meta">${fmtDay(p.date)} · ${fmtTime(p.time)}</div></div><span class="status ${p.status}">${p.status}</span></div>`).join("")||`<div class="empty">No posts planned.</div>`}</div>`,"",440)}
     ${card("Career goals","",`<div class="list">${S.career.map(g=>`<div class="row"><div class="grow">${esc(g.title)}<div class="bar" style="margin-top:8px"><i style="width:${gp(g)*100}%"></i></div></div><span class="time">${Math.round(gp(g)*100)}%</span></div>`).join("")||`<div class="empty">No goals yet.</div>`}</div>`,"",500)}
   </div>`;
+}
+let tipText="";
+function localTip(){
+  const h=H(),tt=todayTasks(),left=tt.filter(k=>!k.done),hr=new Date().getHours();
+  if((h.water||0)<Math.floor(S.goals.water*hr/24))return`You have had ${h.water||0} glasses of water so far. Drink one now to stay on track.`;
+  if(h.sleep&&+h.sleep<6)return"You slept less than 6 hours. Try to go to bed 30 minutes earlier tonight.";
+  if(left.length>=4)return`You still have ${left.length} tasks today. Start with the smallest one to build momentum.`;
+  if(S.habits.length&&!S.habits.some(x=>x.days&&x.days[today()]))return"You have not done any habits today yet. Pick one and do it now.";
+  if(studyMins(today())<25&&S.study.subjects.length)return"Start a 25 minute focus session to move your studies forward.";
+  return"Great job today. Take a short walk and plan tomorrow's top 3 tasks.";
 }
 const kpiCard=(l,v,suf,p,color,note,delay)=>`<section class="card rise kpi" style="animation-delay:${delay}ms">${ring(p,64,7,color,null)}<div><div class="k-lbl">${l}</div><div class="k-val">${v}<small>${suf}</small></div><div class="k-note">${note}</div></div></section>`;
 
@@ -602,7 +820,46 @@ function vSocial(){
   </div>`;
 }
 
-const VIEWS={home:vHome,schedule:vSchedule,health:vHealth,study:vStudy,career:vCareer,habits:vHabits,social:vSocial};
+let waDraft={to:"",text:""};
+function vWhatsApp(){
+  const t=today(),cOpts=S.wa.contacts.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  const sel=find(S.wa.contacts,waDraft.to);const now=nowHM();
+  const sched=sortT(S.wa.scheduled);
+  return `<div class="grid g2">
+    <section class="card wa-hero rise span2"><div class="tip"><div class="tip-icon" style="background:rgba(255,255,255,.18)">${ic("wa")}</div><div><h2 style="font-size:19px">Your WhatsApp helper</h2>
+      <p style="margin-top:6px">Save your contacts, write messages with AI, and schedule them. When it is time, Aether reminds you and opens WhatsApp with the message ready. You just tap <b>Send</b>.</p></div></div></section>
+    ${card("Send a message","",`<form class="stack" data-form="waSend">
+      <div class="add" style="display:flex;gap:10px;flex-wrap:wrap"><select class="inp wide" id="w-to" name="to" aria-label="Contact"><option value="">Choose a contact…</option>${cOpts}</select><input class="inp wide" id="w-phone" name="phone" placeholder="or phone with country code, e.g. 923001234567" inputmode="tel" value="${esc(sel?"":(waDraft.phone||""))}" aria-label="Phone number"></div>
+      <textarea class="inp" id="w-text" name="text" placeholder="Type your message…" aria-label="Message">${esc(waDraft.text)}</textarea>
+      <div class="tmpls">${WA_TEMPLATES.map(([n],i)=>`<button type="button" class="sug" data-act="waTmpl" data-n="${i}">${n}</button>`).join("")}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" class="btn ghost" data-act="waAI">${ic("spark")}Write with AI</button><button class="btn" style="background:#16a34a;color:#fff">${ic("wa")}Open in WhatsApp</button></div>
+      <p class="note" style="margin:0">Tip: type a short idea like "tell Ali I will be late", then tap <b>Write with AI</b>.</p></form>`,"",60)}
+    ${card("Schedule a message","Aether reminds you on time",`<form class="add" data-form="waSched">
+      <select class="inp wide" id="ws-to" name="to" required aria-label="Contact"><option value="">Choose a contact…</option>${cOpts}</select>
+      <input class="inp" type="date" id="ws-date" name="date" value="${t}" required aria-label="Date"><input class="inp" type="time" id="ws-time" name="time" required aria-label="Time">
+      <select class="inp" id="ws-rep" name="rep" aria-label="Repeat"><option value="once">Once</option><option value="daily">Every day</option></select>
+      <textarea class="inp" id="ws-text" name="text" placeholder="Message to send…" required aria-label="Message"></textarea>
+      <button class="btn" ${cOpts?"":"disabled"}>${ic("clock")}Schedule</button></form>${cOpts?"":`<p class="note">Add a contact first.</p>`}`,"",120)}
+    ${card("Scheduled messages",`${sched.filter(m=>!m.sent).length} waiting`,`<div class="list">${sched.map(m=>{const c=find(S.wa.contacts,m.to);const due=!m.sent&&(m.date<t||(m.date===t&&m.time<=now));
+      return `<div class="row"><span class="time">${fmtTime(m.time).replace(" ","&nbsp;")}</span><div class="grow"><b>${esc(c?c.name:"Deleted contact")}</b> <span class="meta">· ${fmtDay(m.date)}${m.rep==="daily"?" · every day":""}</span><div class="meta">${esc(m.text)}</div></div>
+      ${m.sent?`<span class="status posted">sent</span>`:due&&c?`<a class="wa-link" href="${esc(waLink(c.phone,m.text))}" target="_blank" rel="noopener" data-act="waSent" data-id="${m.id}">${ic("wa")}Send now</a>`:`<span class="status scheduled">waiting</span>`}${del("delWaS",m.id)}</div>`}).join("")||`<div class="empty"><b>No scheduled messages</b>Schedule good morning texts, reminders or birthday wishes.</div>`}</div>`,"span2",180)}
+    ${card("Contacts",S.wa.contacts.length+" saved",`<div class="list">${S.wa.contacts.map(c=>`<div class="row"><span class="plat-badge" style="background:#16a34a;width:34px;height:34px;font-size:13px;border-radius:10px">${esc(initials(c.name))}</span><div class="grow"><b>${esc(c.name)}</b><div class="meta">+${esc(digits(c.phone))}</div></div>${waA(waLink(c.phone,""),"Chat")}${del("delWaC",c.id)}</div>`).join("")||`<div class="empty"><b>No contacts yet</b>Add people you message often.</div>`}</div>
+      <form class="add" data-form="waContact" style="margin-top:12px"><input class="inp wide" id="wc-name" name="name" placeholder="Name, e.g. Ammi" required><input class="inp wide" id="wc-phone" name="phone" placeholder="Phone with country code, e.g. 923001234567" inputmode="tel" required><button class="btn">${ic("plus")}Add contact</button></form>`,"span2",240)}
+  </div>`;
+}
+
+function openSettings(){
+  const m=document.getElementById("modal");m.hidden=false;const mode=aiMode();
+  const st={claude:["var(--ok)","Smart AI is on. It is powered by Claude inside your Claude account."],key:["var(--ok)","Smart AI is on with your Claude API key."],basic:["var(--warm)","Basic mode. Aether understands simple commands. Add a key below to make it smarter."]}[mode];
+  m.innerHTML=`<div class="modal-card" role="dialog" aria-modal="true" aria-label="AI settings"><div class="card-h"><h2>AI settings</h2><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic("x")}</button></div>
+    <div class="stack"><div class="ai-status"><i style="background:${st[0]}"></i><span>${st[1]}</span></div>
+    ${mode==="claude"?"":`<label class="field">Claude API key<input class="inp" type="password" id="set-key" placeholder="sk-ant-…" value="${esc(aiKey)}" autocomplete="off"></label>
+    <p class="note" style="margin:0">Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> under API Keys. The key is saved only in this browser and is used to talk to Claude directly. Do not use it on a shared computer.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="saveKey">Save key</button>${aiKey?`<button class="btn ghost" data-act="removeKey">Remove key</button>`:""}</div>`}
+    </div></div>`;
+}
+
+const VIEWS={home:vHome,schedule:vSchedule,health:vHealth,study:vStudy,career:vCareer,habits:vHabits,social:vSocial,whatsapp:vWhatsApp};
 function render(){
   const sec=SECTIONS.find(s=>s.id===view),main=document.getElementById("main");
   main.className=animate?"anim":"";
@@ -615,18 +872,20 @@ function render(){
 /* ---------- alerts ---------- */
 let audioCtx=null;
 function beep(){try{audioCtx=audioCtx||new AudioContext();[0,.18].forEach((d,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=i?1046:784;g.gain.setValueAtTime(.12,audioCtx.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d+.45);o.connect(g).connect(audioCtx.destination);o.start(audioCtx.currentTime+d);o.stop(audioCtx.currentTime+d+.5)})}catch(e){}}
-function toast(title,body){
+function toast(title,body,link){
   const box=document.getElementById("toasts"),t=document.createElement("div");t.className="toast";
-  t.innerHTML=`<div><b></b><span></span></div><button aria-label="Close">×</button>`;
+  t.innerHTML=`<div><b></b><span></span>${link?`<div style="margin-top:8px">${waA(link.href,link.label)}</div>`:""}</div><button aria-label="Close">×</button>`;
   t.querySelector("b").textContent=title;t.querySelector("span").textContent=body;
-  t.querySelector("button").onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),9000);
+  t.querySelector("button").onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),link?60000:9000);
 }
-function notify(title,body){toast(title,body);beep();speak(title);try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
+function notify(title,body,link){toast(title,body,link);beep();speak(title);try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
 function checkAlerts(){
   const t=today(),hm=nowHM(),d=new Date(Date.now()-30*60000),since=pad(d.getHours())+":"+pad(d.getMinutes());let ch=false;
   const due=x=>x.time&&x.time<=hm&&(x.time>=since||since>hm);
   for(const k of S.tasks){if(k.done||k.notified||k.date!==t||!due(k))continue;notify("Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||""));k.notified=true;ch=true}
   for(const p of S.social.posts){if(p.status!=="scheduled"||p.notified||p.date!==t||!due(p))continue;notify("Time to post on "+p.platform,p.text.slice(0,80));p.notified=true;ch=true}
+  for(const m of S.wa.scheduled){if(m.sent||m.notified||m.date!==t||!due(m))continue;const c=find(S.wa.contacts,m.to);if(!c)continue;
+    notify("WhatsApp message for "+c.name,m.text.slice(0,80),{href:waLink(c.phone,m.text),label:"Send now"});m.notified=true;ch=true}
   if(ch){save();render()}
 }
 function startAlerts(){checkAlerts();setInterval(checkAlerts,20000)}
@@ -634,6 +893,23 @@ async function askNotify(){
   beep();
   try{if(!("Notification" in window))throw 0;const r=await Notification.requestPermission();if(r==="granted"){toast("Alerts are on","You will also get notifications from your browser.");return}throw 0}
   catch(_){toast("Alerts stay on this page","Your browser did not allow notifications here. Keep this page open and Aether will pop up and play a sound.")}
+}
+
+async function newTip(btn){
+  if(aiMode()==="basic"){tipText=localTip();const p=document.getElementById("tipText");if(p)p.textContent=tipText+" (Add an AI key in AI settings for personal tips.)";return}
+  btn.disabled=true;const p=document.getElementById("tipText");if(p)p.textContent="Thinking…";
+  try{const r=await askAI("Give me one short, personal, motivating tip for right now based on my dashboard data. No actions.");tipText=r.reply||localTip()}
+  catch(e){tipText=localTip()}
+  const q=document.getElementById("tipText");if(q)q.textContent=tipText;btn.disabled=false;
+}
+async function waWrite(btn){
+  const ta=document.getElementById("w-text"),idea=ta.value.trim();
+  if(!idea){toast("Type an idea first","For example: wish Sara happy birthday.");return}
+  if(aiMode()==="basic"){toast("AI is in basic mode","Add a Claude API key in AI settings to write messages with AI.");return}
+  btn.disabled=true;const old=btn.innerHTML;btn.textContent="Writing…";
+  try{const r=await askAI("Write a short, warm WhatsApp message I can send. Idea: "+idea+". Put ONLY the message text in reply. No actions.");if(r.reply)ta.value=r.reply.replace(/^"|"$/g,"")}
+  catch(e){toast("AI is not available","Check your internet or your API key.")}
+  btn.disabled=false;btn.innerHTML=old;
 }
 
 /* ---------- events ---------- */
@@ -662,8 +938,21 @@ document.addEventListener("click",e=>{
     case"copyPost":{const p=find(S.social.posts,id);navigator.clipboard.writeText(p.text).then(()=>toast("Copied","Now paste it in the app."),()=>toast("Could not copy","Select the text and copy it yourself."));return}
     case"alerts":askNotify();return;
     case"openVoice":openVA();return;
-    case"loadExample":S=exampleData();animate=true;toast("Sample data loaded","Look around. Remove it any time.");break;
-    case"clearExample":S=blank();animate=true;break;
+    case"loadExample":{const p=S.profile;S=exampleData();S.profile=p;animate=true;toast("Sample data loaded","Look around. Remove it any time.");break}
+    case"clearExample":{const p=S.profile;S=blank();S.profile=p;animate=true;break}
+    case"editProfile":menu.hidden=true;showOnboard(true);return;
+    case"signOut":menu.hidden=true;S.profile=null;save();paintProfile();showOnboard();return;
+    case"openSettings":menu.hidden=true;openSettings();return;
+    case"closeModal":document.getElementById("modal").hidden=true;return;
+    case"saveKey":{const k=document.getElementById("set-key").value.trim();if(k&&!/^sk-ant-/.test(k)){toast("That key looks wrong","A Claude API key starts with sk-ant-");return}
+      aiKey=k;aiClient=null;try{k?localStorage.setItem("aether-ai-key",k):localStorage.removeItem("aether-ai-key")}catch(_){}document.getElementById("modal").hidden=true;toast(k?"Smart AI is on":"Key removed",k?"Ask Aether anything.":"Aether is back to basic mode.");return}
+    case"removeKey":aiKey="";aiClient=null;try{localStorage.removeItem("aether-ai-key")}catch(_){}openSettings();return;
+    case"newTip":newTip(b);return;
+    case"waTmpl":{const ta=document.getElementById("w-text");ta.value=WA_TEMPLATES[n][1];ta.focus();return}
+    case"waAI":waWrite(b);return;
+    case"waSent":{const m=find(S.wa.scheduled,id);if(m.rep==="daily"){m.date=addDays(m.date<t?t:m.date,1);m.notified=false}else m.sent=true;save();setTimeout(render,300);return}
+    case"delWaS":S.wa.scheduled=S.wa.scheduled.filter(m=>m.id!==id);break;
+    case"delWaC":S.wa.contacts=S.wa.contacts.filter(c=>c.id!==id);break;
     default:return;
   }
   save();render();
@@ -684,6 +973,11 @@ document.addEventListener("submit",e=>{
     case"account":S.social.accounts.push({id:uid(),platform:d.platform,handle:d.handle.trim(),history:d.f!==""?[{date:today(),followers:+d.f}]:[]});break;
     case"followers":{if(d.n==="")return;const a=find(S.social.accounts,fid);a.history=(a.history||[]).filter(h=>h.date!==today());a.history.push({date:today(),followers:+d.n});break}
     case"post":S.social.posts.push({id:uid(),platform:d.platform,date:d.date,time:d.time,text:d.text.trim(),status:"scheduled"});toast("Post planned","Aether will remind you.");break;
+    case"waContact":{if(digits(d.phone).length<8){toast("Check the number","Use the full number with country code, e.g. 923001234567.");return}S.wa.contacts.push({id:uid(),name:d.name.trim(),phone:digits(d.phone)});toast("Contact saved",d.name.trim());break}
+    case"waSched":S.wa.scheduled.push({id:uid(),to:d.to,date:d.date,time:d.time,rep:d.rep,text:d.text.trim(),sent:false});toast("Message scheduled","Aether will remind you at "+fmtTime(d.time)+".");break;
+    case"waSend":{const c=find(S.wa.contacts,d.to);const phone=c?c.phone:digits(d.phone);if(!d.text.trim()){toast("Message is empty","Type a message first.");return}
+      if(digits(phone).length<8){toast("Choose who to send to","Pick a contact or type a full phone number.");return}
+      const a=document.createElement("a");a.href=waLink(phone,d.text.trim());a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove();return}
     default:return;
   }
   save();render();
@@ -710,7 +1004,7 @@ try{muted=localStorage.getItem("aether-mute")==="1"}catch(e){}
 document.getElementById("fab").innerHTML=ic("mic");orb.innerHTML=ic("mic");document.getElementById("vaClose").innerHTML=ic("x");
 const paintMute=()=>document.getElementById("muteBtn").innerHTML=ic(muted?"mute":"vol");paintMute();
 document.getElementById("muteBtn").onclick=()=>{muted=!muted;try{localStorage.setItem("aether-mute",muted?"1":"0")}catch(e){}paintMute();if(muted)try{speechSynthesis.cancel()}catch(e){}};
-const SUGS=["What is my plan today?","Add task gym at 6 pm","I drank water","I slept 7 hours","Start focus timer","How am I doing?","Help"];
+const SUGS=["What is my plan today?","Add task gym at 6 pm","I drank water","I slept 7 hours","Start focus timer","Open WhatsApp","How am I doing?","Help"];
 document.getElementById("sugs").innerHTML=SUGS.map(s=>`<button class="sug" type="button">${s}</button>`).join("");
 document.getElementById("sugs").onclick=e=>{const s=e.target.closest(".sug");if(s)handle(s.textContent)};
 document.getElementById("fab").onclick=openVA;
@@ -719,7 +1013,9 @@ let greeted=false;
 function openVA(){va.hidden=false;document.getElementById("fab").hidden=true;document.getElementById("fabLabel").hidden=true;
   if(!greeted){greeted=true;const hr=new Date().getHours();addMsg("ai",(hr<12?"Good morning":hr<17?"Good afternoon":"Good evening")+"! I am Aether. Tap the circle and talk to me, or type below. Say \"help\" to see what I can do.")}
   document.getElementById("vaText").focus({preventScroll:true})}
-function addMsg(who,text){const m=document.createElement("div");m.className="msg "+who;m.textContent=text;vaLog.appendChild(m);vaLog.scrollTop=vaLog.scrollHeight}
+function addMsg(who,text,links){const m=document.createElement("div");m.className="msg "+who;m.textContent=text;
+  (links||[]).forEach(l=>{const w=document.createElement("div");w.innerHTML=waA(l.href,l.label);m.appendChild(w)});
+  vaLog.appendChild(m);vaLog.scrollTop=vaLog.scrollHeight;return m}
 function speak(text){if(muted)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=1;const v=speechSynthesis.getVoices().find(v=>/en(-|_)(US|GB)/.test(v.lang)&&/female|samantha|zira|aria|jenny|google us/i.test(v.name));if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){}}
 document.getElementById("vaForm").onsubmit=e=>{e.preventDefault();const i=document.getElementById("vaText");if(i.value.trim())handle(i.value.trim());i.value=""};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -756,7 +1052,11 @@ function handle(raw){
   addMsg("me",raw);const s=raw.toLowerCase().replace(/[?!]/g,"").trim();let r="";
   const tab=SECTIONS.find(x=>new RegExp("\\b(open|show|go to)\\b.*\\b"+x.label.toLowerCase()).test(s)||(x.id==="social"&&/\b(open|show)\b.*\bsocial/.test(s)));
   let m;
-  if(/^(help|what can you do)/.test(s)){r="You can say: add task gym at 6 pm. What is my plan today? What is next? I drank water. I slept 7 hours. I walked 5000 steps. Start focus timer. Mark gym done. Open health. How am I doing?"}
+  const wm=raw.match(/^(?:please\s+)?(?:send\s+)?(?:a\s+)?(?:whatsapp|message|text|msg)\s+(?:message\s+)?(?:to\s+)?([a-z]+)\s*(?:saying|that|say|:)?\s*(.*)$/i);
+  if(/^(help|what can you do)/.test(s)){r="You can say: add task gym at 6 pm. What is my plan today? I drank water. I slept 7 hours. Start focus timer. Mark gym done. Message Ali saying I am on my way. Open WhatsApp. How am I doing?"+(aiMode()==="basic"?" Turn on smart AI in AI settings to ask me anything.":" You can also ask me anything!")}
+  else if(wm&&findContact(wm[1])){const c=findContact(wm[1]);const text=wm[2].trim();
+    r=text?`Your message to ${c.name} is ready. Tap the button to send it in WhatsApp.`:`What should I tell ${c.name}? Say: message ${c.name} saying hello.`;
+    const links=text?[{href:waLink(c.phone,text[0].toUpperCase()+text.slice(1)),label:"Send to "+c.name}]:[];addMsg("ai",r,links);speak(r);return}
   else if(m=s.match(/^(?:add|create|new|remind me to|remind me)\s+(?:a\s+)?(?:task\s+|reminder\s+)?(?:to\s+)?(.+)/)){
     let body=m[1];const time=parseTime(body);const tomorrow=/\btomorrow\b/.test(body);
     let title=body.replace(/\b(?:at\s+)?\d{1,2}(?:[:.]\d{2})?\s*(?:a\.?\s?m\.?|p\.?\s?m\.?)/gi,"").replace(/\bat\s+\d{1,2}(?:[:.]\d{2})?\b/gi,"").replace(/\b(tomorrow|today|at)\b/gi,"").replace(/\s+/g," ").trim();
@@ -766,7 +1066,7 @@ function handle(raw){
   else if(/(plan|schedule|tasks).*(today)|what.*(today)|my day/.test(s)){
     const tt=todayTasks().filter(k=>!k.done);r=tt.length?`You have ${tt.length} tasks left today: `+tt.slice(0,5).map(k=>k.title+(k.time?" at "+fmtTime(k.time):"")).join(", ")+".":"You have no tasks left today. Enjoy your day!"}
   else if(/what.*next|next task/.test(s)){const n=todayTasks().find(k=>!k.done&&(k.time||"99")>=nowHM())||todayTasks().find(k=>!k.done);r=n?`Next is ${n.title}${n.time?" at "+fmtTime(n.time):""}.`:"Nothing is next. You are all done for today."}
-  else if(/water|glass/.test(s)&&!/how much/.test(s)){const n=+(s.match(/(\d+)\s*glass/)||[])[1]||1;addWater(n);save();render();const h=H();r=`Great. That is ${h.water} of ${S.goals.water} glasses today.`+(h.water>=S.goals.water?" You reached your goal!":"")}
+  else if(/\b(drank|drink|had|add|log)\b.*\b(water|glass)/.test(s)&&!/how much|should/.test(s)){const n=+(s.match(/(\d+)\s*glass/)||[])[1]||1;addWater(n);save();render();const h=H();r=`Great. That is ${h.water} of ${S.goals.water} glasses today.`+(h.water>=S.goals.water?" You reached your goal!":"")}
   else if(m=s.match(/slept\s+(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*hours?\s*(?:of\s*)?sleep/)){const v=m[1]||m[2];hd().sleep=v;save();render();r=`Saved ${v} hours of sleep.`+(+v<S.goals.sleep?" Try to sleep a little more tonight.":" Well rested!")}
   else if(m=s.match(/(\d[\d,]*)\s*steps|walked\s+(\d[\d,]*)/)){const v=(m[1]||m[2]).replace(/,/g,"");hd().steps=v;save();render();r=`Saved ${(+v).toLocaleString()} steps.`+(+v>=STEP_GOAL?" You hit your goal!":` ${(STEP_GOAL-v).toLocaleString()} more to reach your goal.`)}
   else if(/(start|begin).*(focus|timer|pomodoro|study)/.test(s)){go("study");if(!pomo.run)togglePomo();r="Focus timer started for 25 minutes. Good luck!"}
@@ -782,7 +1082,13 @@ function handle(raw){
   else if(/time is it|what time/.test(s)){r="It is "+fmtTime(nowHM())+"."}
   else if(/^(hi|hello|hey|salam|assalam)/.test(s)){r="Hello! How can I help you today?"}
   else if(/thank/.test(s)){r="You're welcome!"}
-  else{r="Sorry, I didn't get that. Say \"help\" to hear what I can do."}
+  else if(aiMode()!=="basic"){
+    const bubble=addMsg("ai","Thinking…");vaState.textContent="Thinking…";
+    askAI(raw).then(out=>{const links=runActions(out.actions);bubble.remove();addMsg("ai",out.reply||"Done.",links);speak(out.reply||"Done.")})
+      .catch(()=>{bubble.remove();const m="I can't reach the smart AI right now. Check your internet or your key in AI settings.";addMsg("ai",m);speak(m)})
+      .finally(()=>{vaState.textContent="Tap the circle and speak"});
+    return}
+  else{r="Sorry, I didn't get that. Say \"help\" to see what I can do. To ask me anything, turn on smart AI in AI settings from your profile picture."}
   addMsg("ai",r);speak(r);
 }
 
@@ -807,6 +1113,10 @@ function exampleData(){
   s.social.posts=[{id:uid(),platform:"LinkedIn",date:t,time:"14:00",text:"Today I finished my third React project. Learning never stops!",status:"scheduled"},
     {id:uid(),platform:"Instagram",date:addDays(t,1),time:"19:00",text:"A quick tour of my study desk",status:"draft"},
     {id:uid(),platform:"X",date:y,time:"12:00",text:"Productivity tip: work in 25 minute blocks.",status:"posted"}];
+  const ali={id:uid(),name:"Ali (sample)",phone:"920000000001"},ammi={id:uid(),name:"Ammi (sample)",phone:"920000000002"};
+  s.wa.contacts=[ali,ammi];
+  s.wa.scheduled=[{id:uid(),to:ammi.id,date:t,time:"08:00",rep:"daily",text:"Good morning Ammi! Have a lovely day.",sent:false,notified:true},
+    {id:uid(),to:ali.id,date:t,time:"17:00",rep:"once",text:"Hi Ali, are we still meeting at 6?",sent:false}];
   return s;
 }
 boot();

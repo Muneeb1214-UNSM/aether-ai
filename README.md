@@ -15,6 +15,25 @@ Your personal assistant dashboard. Plan your day, track your health and study, r
 | Career | Big goals broken into small steps, with progress rings |
 | Habits | 7-day habit grid with streaks |
 | Social | Follower tracking with growth charts for Instagram, Facebook, LinkedIn, X and WhatsApp, plus a post planner |
+| WhatsApp | Save contacts, use ready-made templates, write messages with AI, schedule messages (once or every day). At the right time Aether reminds you and opens WhatsApp with the message ready |
+
+## Your profile
+
+On first open, enter your name and email to get your dashboard. Tap your profile picture (top right) to edit your profile, open AI settings or sign out. Your details stay on your device.
+
+## Smart AI
+
+Aether understands simple commands on its own. To ask it anything (advice, questions, writing messages, personal tips), turn on smart AI:
+
+1. Tap your profile picture → **AI settings**
+2. Paste a Claude API key from [console.anthropic.com](https://console.anthropic.com)
+3. Ask anything, e.g. "Plan my evening", "Write a birthday message for Sara", "Give me a study tip"
+
+The key is saved only in your browser and requests go straight from your browser to Claude (`claude-opus-5-5`). Smart AI can also act for you: add tasks, log water and sleep, add habits, open tabs and prepare WhatsApp messages.
+
+## WhatsApp automation: what it does
+
+Aether prepares messages and reminds you on time. When you tap **Send now**, WhatsApp opens with the message already typed, and you tap Send. Sending with no tap at all needs the WhatsApp Business API and a server, which is on the roadmap.
 
 ## Voice assistant
 
@@ -31,6 +50,7 @@ Try saying:
 - "Start focus timer"
 - "I feel good"
 - "Open health"
+- "Message Ali saying I am on my way" (for a saved WhatsApp contact)
 - "How am I doing?"
 - "Help"
 
@@ -54,10 +74,10 @@ Download the repo and open `index.html` in Chrome or Edge.
 
 ## Roadmap
 
-- [ ] Telegram / WhatsApp bot for reminders when the page is closed
+- [ ] Fully automatic WhatsApp sending through the WhatsApp Business API (needs a small server)
+- [ ] Reminders on your phone when the page is closed
 - [ ] Auto-posting and real analytics through social media APIs
-- [ ] Cloud sync across devices
-- [ ] Smarter AI answers
+- [ ] Real accounts and cloud sync across devices
 
 ## License
 
