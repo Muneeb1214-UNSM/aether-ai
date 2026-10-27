@@ -350,6 +350,23 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .cd{font-family:var(--f-mono);font-size:12px;color:var(--a2);font-weight:600}
 .rep-tag{color:var(--a3)}
 
+/* notification center */
+.bell-btn{position:relative}
+.badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--a3);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;border:2px solid var(--bg);font-family:var(--f-mono)}
+@media (prefers-reduced-motion:no-preference){.badge{animation:pop .4s}}
+.feed{display:flex;flex-direction:column;gap:6px}
+.nitem{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:14px;border:1px solid transparent;cursor:pointer;transition:background .15s}
+.nitem:hover{background:var(--surface-2)}
+.nitem.unread{background:color-mix(in srgb,var(--a2) 8%,var(--surface));border-color:color-mix(in srgb,var(--a2) 30%,var(--line))}
+.nitem.unread b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--a3);margin-left:8px;vertical-align:middle}
+.nicon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none}
+.nicon svg{width:17px;height:17px}
+.tlinks{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tlinks .wa-link{padding:6px 10px;font-size:13px}
+.go-link{display:inline-flex;align-items:center;gap:4px;text-decoration:none;font-weight:700;font-size:13px;padding:6px 10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.toast .go-link{background:rgba(127,127,127,.18);color:inherit;border-color:transparent}
+.go-link:hover{border-color:var(--a2)}
+
 /* phone & small tablet: tabs become a bottom bar */
 @media (max-width:760px){
   header.top{padding-block:12px 4px}
@@ -388,7 +405,7 @@ input[type=range]{width:100%;accent-color:var(--a2)}
     <div class="top-actions">
       <span class="chip" id="sync"><span class="dot"></span>Starting…</span>
       <button class="icon-btn" id="themeBtn" aria-label="Switch light or dark mode"></button>
-      <button class="icon-btn" data-act="alerts" aria-label="Turn on alerts" title="Turn on alerts"></button>
+      <button class="icon-btn bell-btn" id="bellBtn" data-go="alerts" aria-label="Notifications" title="Notifications"></button>
       <button class="avatar" id="avatarBtn" aria-label="Your profile" aria-haspopup="true" aria-expanded="false">A</button>
       <div class="menu" id="menu" hidden></div>
     </div>
@@ -483,7 +500,8 @@ const PLATFORMS={Instagram:"#d6297a",Facebook:"#1877f2",LinkedIn:"#0a66c2",X:"#1
 const MOODS=[["Bad","var(--bad)"],["Low","var(--warm)"],["Okay","var(--muted)"],["Good","var(--c-study)"],["Great","var(--ok)"]];
 const STEP_GOAL=8000;
 
-const blank=()=>({profile:null,alerts:[],tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},wa:{contacts:[],scheduled:[]},example:false});
+const NSET=()=>({before:10,nudge:true,morning:{on:true,time:"08:00"},evening:{on:true,time:"21:00"},social:{on:false,times:["13:00","20:00"],plats:["Instagram","WhatsApp"]},ran:{}});
+const blank=()=>({profile:null,alerts:[],notifs:[],nset:NSET(),tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},wa:{contacts:[],scheduled:[]},example:false});
 let S=blank(), view="home", schedFilter="today", store={kind:"none"}, pendingSave=null, saving=Promise.resolve(), dirty=false, animate=true;
 
 const pad=n=>String(n).padStart(2,"0");
@@ -510,7 +528,8 @@ const isEmpty=()=>!S.tasks.length&&!S.study.subjects.length&&!S.career.length&&!
 
 /* ---------- storage ---------- */
 function normalize(d){const b=blank();d=d&&typeof d==="object"?d:{};
-  return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})},wa:{...b.wa,...(d.wa||{})}}}
+  return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})},wa:{...b.wa,...(d.wa||{})},
+    nset:{...b.nset,...(d.nset||{}),morning:{...b.nset.morning,...((d.nset||{}).morning||{})},evening:{...b.nset.evening,...((d.nset||{}).evening||{})},social:{...b.nset.social,...((d.nset||{}).social||{})},ran:{...((d.nset||{}).ran||{})}}}}
 function save(){
   dirty=true;clearTimeout(pendingSave);
   pendingSave=setTimeout(()=>{
@@ -598,7 +617,8 @@ function aiContext(){
     goals:S.career.map(g=>({title:g.title,progress:Math.round(gp(g)*100)+"%",nextStep:(g.milestones.find(m=>!m.done)||{}).t||null})),
     habits:S.habits.map(x=>({name:x.name,doneToday:!!(x.days&&x.days[t]),streak:streak(x)})),
     whatsappContacts:S.wa.contacts.map(c=>c.name),
-    alerts:S.alerts.filter(a=>a.on).map(a=>({message:a.text,next:new Date(a.at).toString(),repeat:a.rep}))};
+    alerts:S.alerts.filter(a=>a.on).map(a=>({message:a.text,next:new Date(a.at).toString(),repeat:a.rep})),
+    recentNotifications:S.notifs.slice(0,6).map(n=>({type:n.type,title:n.title,when:timeAgo(n.at),read:n.read}))};
 }
 const AI_SYSTEM=`You are Aether, a friendly personal assistant inside the AETHER AI dashboard. The user may not be technical, so always answer in short, simple English (1-3 sentences, no markdown, no lists unless asked). You can answer any general question, give advice, and you can also change the dashboard by returning actions.
 Reply with ONLY a JSON object, no other text: {"reply": "what you say to the user", "actions": [ ... ]}
@@ -665,7 +685,7 @@ function curTheme(){const t=document.documentElement.dataset.theme;if(t)return t
 function initTheme(){try{const t=localStorage.getItem("aether-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}paintTheme()}
 function paintTheme(){document.getElementById("themeBtn").innerHTML=ic(curTheme()==="dark"?"sun":"moon")}
 document.getElementById("themeBtn").onclick=()=>{const t=curTheme()==="dark"?"light":"dark";document.documentElement.dataset.theme=t;try{localStorage.setItem("aether-theme",t)}catch(e){}paintTheme()};
-document.querySelector('[data-act="alerts"]').innerHTML=ic("bell");
+document.getElementById("bellBtn").innerHTML=ic("bell")+'<span class="badge" id="bellBadge" hidden>0</span>';
 
 /* ---------- tabs ---------- */
 function buildTabs(){
@@ -753,6 +773,7 @@ function vHome(){
     </div>
   </div>
   <div class="grid g2" style="margin-top:16px">
+    ${card("What's happening",`<button class="btn ghost sm" data-go="alerts">See all</button>`,`<div class="feed">${feedItems(S.notifs.slice(0,4))||`<div class="empty">Reminders, alerts and briefings will show up here.</div>`}</div>`,"span2",420)}
     ${card("Upcoming posts","",`<div class="list">${posts.map(p=>`<div class="row"><span class="plat-badge" style="background:${PLATFORMS[p.platform]};width:32px;height:32px;font-size:12px;border-radius:9px">${p.platform[0]}</span><div class="grow">${esc(p.text.slice(0,70))}<div class="meta">${fmtDay(p.date)} · ${fmtTime(p.time)}</div></div><span class="status ${p.status}">${p.status}</span></div>`).join("")||`<div class="empty">No posts planned.</div>`}</div>`,"",440)}
     ${card("Career goals","",`<div class="list">${S.career.map(g=>`<div class="row"><div class="grow">${esc(g.title)}<div class="bar" style="margin-top:8px"><i style="width:${gp(g)*100}%"></i></div></div><span class="time">${Math.round(gp(g)*100)}%</span></div>`).join("")||`<div class="empty">No goals yet.</div>`}</div>`,"",500)}
   </div>`;
@@ -909,26 +930,63 @@ function render(){
   main.innerHTML=(view==="home"?"":`<div class="page-head rise"><div><div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div><h1>${sec.label}</h1><p>${sec.sub}</p></div></div>`)
     +(S.example?`<div class="callout rise" style="margin-bottom:16px"><p>You are looking at <b>sample data</b>. It is not your real information.</p><button class="btn ghost sm" data-act="clearExample">Remove sample data</button></div>`:"")
     +VIEWS[view]();
-  animate=false;
+  animate=false;paintBadge();
 }
 
 /* ---------- alerts ---------- */
 let audioCtx=null;
 function beep(){try{audioCtx=audioCtx||new AudioContext();[0,.18].forEach((d,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=i?1046:784;g.gain.setValueAtTime(.12,audioCtx.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d+.45);o.connect(g).connect(audioCtx.destination);o.start(audioCtx.currentTime+d);o.stop(audioCtx.currentTime+d+.5)})}catch(e){}}
+const goA=l=>l.wa||/wa\.me/.test(l.href)?waA(l.href,l.label):`<a class="go-link" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`;
 function toast(title,body,link){
+  const links=link?(Array.isArray(link)?link:[link]):[];
   const box=document.getElementById("toasts"),t=document.createElement("div");t.className="toast";
-  t.innerHTML=`<div><b></b><span></span>${link?`<div style="margin-top:8px">${waA(link.href,link.label)}</div>`:""}</div><button aria-label="Close">×</button>`;
+  t.innerHTML=`<div><b></b><span></span>${links.length?`<div class="tlinks">${links.map(goA).join("")}</div>`:""}</div><button aria-label="Close">×</button>`;
   t.querySelector("b").textContent=title;t.querySelector("span").textContent=body;
-  t.querySelector("button").onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),link?60000:9000);
+  t.querySelector("button").onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),links.length?60000:9000);
 }
-function notify(title,body,link){toast(title,body,link);beep();speak(title);try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
+/* notification center: everything Aether tells you is also kept in a feed */
+const NTYPES={task:["Tasks","var(--c-work)","cal"],alert:["Alerts","var(--a3)","bell"],social:["Social","var(--c-social)","share"],whatsapp:["WhatsApp","#16a34a","wa"],brief:["Briefings","var(--a2)","spark"]};
+const INBOX={Instagram:"https://www.instagram.com/direct/inbox/",Facebook:"https://www.facebook.com/messages/",LinkedIn:"https://www.linkedin.com/messaging/",X:"https://x.com/messages",WhatsApp:"https://web.whatsapp.com/"};
+function sysNotif(title,body){try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
+function logNotif(type,title,body,links){S.notifs.unshift({id:uid(),type,title,body:body||"",at:Date.now(),read:false,links:links||[]});S.notifs=S.notifs.slice(0,100);paintBadge();save()}
+function paintBadge(){const b=document.getElementById("bellBadge");if(!b)return;const n=S.notifs.filter(x=>!x.read).length;b.textContent=n>99?"99+":n;b.hidden=!n}
+function notify(title,body,link,type="task",say){const links=link?(Array.isArray(link)?link:[link]):[];logNotif(type,title,body,links);toast(title,body,links);beep();speak(say||title);sysNotif(title,body)}
+const toMin=hm=>{const[h,m]=hm.split(":").map(Number);return h*60+m};
+function briefingText(kind){
+  const t=today(),tt=todayTasks(),done=tt.filter(k=>k.done),left=tt.filter(k=>!k.done),h=H(),name=firstName();
+  const alertsToday=S.alerts.filter(a=>a.on&&ymd(new Date(a.at))===t).length;
+  const waToday=S.wa.scheduled.filter(m=>!m.sent&&m.date===t).length,postsToday=S.social.posts.filter(p=>p.status==="scheduled"&&p.date===t).length;
+  if(kind==="morning"){
+    const first=left.find(k=>k.time)||left[0];
+    return `Good morning${name?", "+name:""}! Today you have ${tt.length} task${tt.length===1?"":"s"}`+(first?`, starting with ${first.title}${first.time?" at "+fmtTime(first.time):""}`:"")+`. `
+      +(alertsToday?`You have ${alertsToday} alert${alertsToday>1?"s":""} today. `:"")+(waToday?`${waToday} WhatsApp message${waToday>1?"s are":" is"} scheduled. `:"")+(postsToday?`${postsToday} social post${postsToday>1?"s are":" is"} planned. `:"")+"Have a great day!";
+  }
+  const tom=S.tasks.filter(k=>k.date===addDays(t,1)).length;
+  return `Here is your day${name?", "+name:""}. You finished ${done.length} of ${tt.length} tasks`+(left.length?`. Still open: ${left.slice(0,3).map(k=>k.title).join(", ")}`:". Everything is done, great work")+`. You drank ${h.water||0} of ${S.goals.water} glasses of water. Tomorrow you have ${tom} task${tom===1?"":"s"}.`;
+}
+function briefing(kind){
+  const txt=briefingText(kind),title=kind==="morning"?"Your morning briefing":"Your evening review";
+  logNotif("brief",title,txt);sysNotif(title,txt);
+  alertQueue.push({text:title,more:txt,say:txt,late:false,rep:"once",kind:"brief"});if(document.getElementById("alertPop").hidden)showNextAlert();
+}
+function socialCheck(){
+  const plats=S.nset.social.plats.filter(p=>INBOX[p]);if(!plats.length)return;
+  notify("Time to check your messages","Check "+plats.join(", ")+" for new messages and notifications.",plats.map(p=>({href:INBOX[p],label:p})),"social");
+}
 function checkAlerts(){
   const t=today(),hm=nowHM(),d=new Date(Date.now()-30*60000),since=pad(d.getHours())+":"+pad(d.getMinutes());let ch=false;
   const due=x=>x.time&&x.time<=hm&&(x.time>=since||since>hm);
-  for(const k of S.tasks){if(k.done||k.notified||k.date!==t||!due(k))continue;notify("Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||""));k.notified=true;ch=true}
-  for(const p of S.social.posts){if(p.status!=="scheduled"||p.notified||p.date!==t||!due(p))continue;notify("Time to post on "+p.platform,p.text.slice(0,80));p.notified=true;ch=true}
+  const ns=S.nset,nowMin=toMin(hm),win=tm=>nowMin>=toMin(tm)&&nowMin<toMin(tm)+180;
+  for(const k of S.tasks){if(k.done||k.date!==t||!k.time)continue;const tm=toMin(k.time);
+    if(ns.before>0&&!k.pre&&!k.notified&&nowMin>=tm-ns.before&&nowMin<tm){notify(`Coming up in ${tm-nowMin} min: ${k.title}`,fmtTime(k.time)+" · "+(CATS[k.cat]||""),null,"task");k.pre=true;ch=true}
+    if(!k.notified&&due(k)){notify("Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||""),null,"task");k.notified=true;ch=true}
+    if(ns.nudge&&!k.nudged&&nowMin>=tm+60&&nowMin<tm+240){notify(`Did you finish "${k.title}"?`,`It was planned for ${fmtTime(k.time)}. Mark it done in Schedule.`,null,"task");k.nudged=true;ch=true}}
+  for(const p of S.social.posts){if(p.status!=="scheduled"||p.notified||p.date!==t||!due(p))continue;notify("Time to post on "+p.platform,p.text.slice(0,80),INBOX[p.platform]?{href:INBOX[p.platform].replace(/(direct\/inbox|messages|messaging)\/?$/,""),label:"Open "+p.platform}:null,"social");p.notified=true;ch=true}
   for(const m of S.wa.scheduled){if(m.sent||m.notified||m.date!==t||!due(m))continue;const c=find(S.wa.contacts,m.to);if(!c)continue;
-    notify("WhatsApp message for "+c.name,m.text.slice(0,80),{href:waLink(c.phone,m.text),label:"Send now"});m.notified=true;ch=true}
+    notify("WhatsApp message for "+c.name,m.text.slice(0,80),{href:waLink(c.phone,m.text),label:"Send now",wa:true},"whatsapp");m.notified=true;ch=true}
+  if(ns.morning.on&&ns.ran.morning!==t&&win(ns.morning.time)){ns.ran.morning=t;briefing("morning");ch=true}
+  if(ns.evening.on&&ns.ran.evening!==t&&win(ns.evening.time)){ns.ran.evening=t;briefing("evening");ch=true}
+  if(ns.social.on)for(const tm of ns.social.times){const key="s"+tm;if(ns.ran[key]!==t&&win(tm)){ns.ran[key]=t;socialCheck();ch=true}}
   if(ch){save();render()}
 }
 let lastMinuteCheck=0;
@@ -997,6 +1055,13 @@ document.addEventListener("click",e=>{
     case"waSent":{const m=find(S.wa.scheduled,id);if(m.rep==="daily"){m.date=addDays(m.date<t?t:m.date,1);m.notified=false}else m.sent=true;save();setTimeout(render,300);return}
     case"delWaS":S.wa.scheduled=S.wa.scheduled.filter(m=>m.id!==id);break;
     case"delWaC":S.wa.contacts=S.wa.contacts.filter(c=>c.id!==id);break;
+    case"readNotif":{if(e.target.closest("a"))return;const x=find(S.notifs,id);if(x&&!x.read){x.read=true;paintBadge();b.classList.remove("unread");save()}return}
+    case"readAll":S.notifs.forEach(x=>x.read=true);paintBadge();break;
+    case"nFilter":nFilter=id;render();return;
+    case"nsToggle":{const ns=S.nset;if(id==="nudge")ns.nudge=!ns.nudge;else ns[id].on=!ns[id].on;break}
+    case"nsPlat":{const pl=S.nset.social.plats;S.nset.social.plats=pl.includes(id)?pl.filter(p=>p!==id):[...pl,id];break}
+    case"nsAddTime":S.nset.social.times.push("18:00");break;
+    case"briefNow":briefing(id);return;
     case"quickAlert":{const txt=(document.getElementById("al-text").value.trim())||"Reminder";const a=addAlert({text:txt[0].toUpperCase()+txt.slice(1),at:Date.now()+n*60000,rep:"once"});toast("Alert set",`"${a.text}" ${untilText(a.at)}.`);return}
     case"toggleAlert":{const a=find(S.alerts,id);a.on=!a.on;if(a.on&&a.at<=Date.now())a.at=a.rep==="interval"?Date.now()+a.every*60000:nextAt(a);break}
     case"delAlert":S.alerts=S.alerts.filter(a=>a.id!==id);break;
@@ -1007,6 +1072,10 @@ document.addEventListener("click",e=>{
 });
 function addWater(n){const h=hd();h.water=Math.max(0,(h.water||0)+n);if(n>0&&h.water===S.goals.water)toast("Goal reached!","You drank "+h.water+" glasses of water today.");}
 document.addEventListener("input",e=>{if(e.target.id==="h-sleep"){const v=document.getElementById("sleepVal");if(v)v.firstChild.textContent=e.target.value}});
+document.addEventListener("change",e=>{const p=e.target.dataset.ns;if(!p)return;
+  const parts=p.split(".");let o=S.nset;for(let i=0;i<parts.length-1;i++)o=o[parts[i]];const k=parts[parts.length-1];
+  o[k]=p==="before"?+e.target.value:e.target.value;
+  if(p.startsWith("social.times")){S.nset.social.times=S.nset.social.times.filter(Boolean)}save();toast("Saved","Notification settings updated.")});
 document.addEventListener("change",e=>{const f=e.target.dataset.health;if(!f)return;hd()[f]=e.target.value;save();if(f==="steps")render()});
 document.addEventListener("submit",e=>{
   if(e.target.id==="vaForm")return;
@@ -1169,6 +1238,13 @@ function handle(raw){
     if(!title){r="What should the task be? Try: add task call mom at 8 pm."}
     else{title=title[0].toUpperCase()+title.slice(1);const date=tomorrow?addDays(today(),1):today();addTask(title,date,time,guessCat(title));save();render();
       r=`Done. I added "${title}" ${tomorrow?"for tomorrow":"for today"}${time?" at "+fmtTime(time):""}. I will remind you.`}}
+  else if(/what'?s happening|what is happening|what did i miss|any (new )?(notifications|updates|messages)|(read|show|check) (my )?(notifications|updates)|catch me up|what'?s new/.test(s)){
+    const un=S.notifs.filter(n=>!n.read);const next=todayTasks().find(k=>!k.done&&(k.time||"99")>=nowHM());const na=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at)[0];
+    r=(un.length?`You have ${un.length} new update${un.length>1?"s":""}: `+un.slice(0,3).map(n=>n.title.replace(/[.?!"]+$/,"").replace(/"/g,"")).join(". ")+". ":"No new updates. ")
+      +(next?`Your next task is ${next.title}${next.time?" at "+fmtTime(next.time):""}. `:"")+(na?`Next alert: ${na.text} ${whenText(na.at)}.`:"");
+    un.forEach(n=>n.read=true);paintBadge();save();if(view==="alerts"||view==="home")render()}
+  else if(/(morning )?briefing|brief me|daily summary|evening review|summari[sz]e my day/.test(s)){
+    const kind=/evening|review|summari/.test(s)||new Date().getHours()>=17?"evening":"morning";r=briefingText(kind);logNotif("brief",kind==="morning"?"Your morning briefing":"Your evening review",r)}
   else if(/(plan|schedule|tasks).*(today)|what.*(today)|my day/.test(s)){
     const tt=todayTasks().filter(k=>!k.done);r=tt.length?`You have ${tt.length} tasks left today: `+tt.slice(0,5).map(k=>k.title+(k.time?" at "+fmtTime(k.time):"")).join(", ")+".":"You have no tasks left today. Enjoy your day!"}
   else if(/what.*next|next task/.test(s)){const n=todayTasks().find(k=>!k.done&&(k.time||"99")>=nowHM())||todayTasks().find(k=>!k.done);r=n?`Next is ${n.title}${n.time?" at "+fmtTime(n.time):""}.`:"Nothing is next. You are all done for today."}
@@ -1236,18 +1312,21 @@ function nextAt(a){
 const alertQueue=[];let alertBeep=null;
 function fireAlert(a,late){
   alertQueue.push({text:a.text,late,rep:a.rep});
-  try{if("Notification" in window&&Notification.permission==="granted")new Notification("AETHER alert",{body:a.text})}catch(e){}
+  logNotif("alert",a.text,(late?"Missed alert":"Alert")+(a.rep&&a.rep!=="once"?" · "+(a.rep==="interval"?"every "+a.every+" min":REP_LABEL[a.rep]):""));
+  sysNotif("AETHER alert",a.text);
   if(document.getElementById("alertPop").hidden)showNextAlert();
 }
 function showNextAlert(){
   const x=alertQueue[0],pop=document.getElementById("alertPop");if(!x){pop.hidden=true;clearInterval(alertBeep);alertBeep=null;return}
   document.getElementById("alertBell").innerHTML=ic("bell");
-  document.getElementById("alertWhen").textContent=(x.late?"Missed alert · ":"Alert · ")+fmtTime(nowHM());
+  document.getElementById("alertBell").innerHTML=ic(x.kind==="brief"?"spark":"bell");
+  document.getElementById("alertWhen").textContent=(x.kind==="brief"?"Aether · ":x.late?"Missed alert · ":"Alert · ")+fmtTime(nowHM());
   document.getElementById("alertTitle").textContent=x.text;
-  document.getElementById("alertMore").textContent=alertQueue.length>1?`${alertQueue.length-1} more alert${alertQueue.length>2?"s":""} waiting`:(x.rep!=="once"?REP_LABEL[x.rep]+" alert":"");
+  document.getElementById("alertMore").textContent=(x.more?x.more+" ":"")+(alertQueue.length>1?`(${alertQueue.length-1} more waiting)`:(x.rep&&x.rep!=="once"?REP_LABEL[x.rep]+" alert":""));
+  document.getElementById("alertSnooze").hidden=x.kind==="brief";
   pop.hidden=false;document.getElementById("alertDone").focus();
-  clearInterval(alertBeep);let n=0;beep();alertBeep=setInterval(()=>{if(++n>12){clearInterval(alertBeep);return}beep()},2500);
-  speak("Alert. "+x.text,true);
+  clearInterval(alertBeep);let n=0;beep();if(x.kind!=="brief")alertBeep=setInterval(()=>{if(++n>12){clearInterval(alertBeep);return}beep()},2500);
+  speak(x.say||"Alert. "+x.text,true);
 }
 document.getElementById("alertDone").onclick=()=>{alertQueue.shift();showNextAlert()};
 document.getElementById("alertSnooze").onclick=()=>{const x=alertQueue.shift();addAlert({text:x.text,at:Date.now()+5*60000,rep:"once"});toast("Snoozed","I will remind you again in 5 minutes.");showNextAlert()};
@@ -1258,9 +1337,38 @@ function checkCustomAlerts(){
   document.querySelectorAll("[data-cd]").forEach(el=>el.textContent=untilText(+el.dataset.cd));
   if(ch){save();if(view==="alerts"||view==="home")render()}
 }
+let nFilter="all";
+function timeAgo(at){const s=Math.round((Date.now()-at)/1000);if(s<60)return"just now";const m=Math.round(s/60);if(m<60)return m+" min ago";const h=Math.round(m/60);if(h<24)return h+"h ago";return fmtDay(ymd(new Date(at)))}
+function feedItems(list){return list.map(n=>{const[,col,icn]=NTYPES[n.type]||NTYPES.task;
+  return `<div class="nitem ${n.read?"":"unread"}" data-act="readNotif" data-id="${n.id}"><span class="nicon" style="background:${col}">${ic(icn)}</span><div class="grow"><b>${esc(n.title)}</b>${n.body?`<div class="meta">${esc(n.body)}</div>`:""}${n.links&&n.links.length?`<div class="tlinks">${n.links.map(goA).join("")}</div>`:""}</div><span class="meta" style="white-space:nowrap">${timeAgo(n.at)}</span></div>`}).join("")}
+function vFeed(){
+  const list=S.notifs.filter(n=>nFilter==="all"||n.type===nFilter),unread=S.notifs.filter(n=>!n.read).length;
+  return `<section class="card rise span2"><div class="card-h"><h2>What's happening</h2><div style="display:flex;gap:8px;align-items:center"><span class="sub">${unread} new</span>${unread?`<button class="btn ghost sm" data-act="readAll">Mark all as read</button>`:""}</div></div>
+    <div class="seg" role="group" aria-label="Show" style="margin-bottom:10px">${[["all","All"],...Object.entries(NTYPES).map(([k,v])=>[k,v[0]])].map(([k,v])=>`<button data-act="nFilter" data-id="${k}" aria-pressed="${nFilter===k}">${v}</button>`).join("")}</div>
+    <div class="feed">${feedItems(list.slice(0,30))||`<div class="empty"><b>Nothing yet</b>Task reminders, alerts, briefings and message check-ins will show up here.</div>`}</div></section>`;
+}
+function vNotifSettings(){
+  const ns=S.nset;const sw=(id,on,label)=>`<button class="switch" data-act="nsToggle" data-id="${id}" aria-pressed="${!!on}" aria-label="${label}"></button>`;
+  const perm=("Notification" in window)?Notification.permission:"unsupported";
+  return card("Smart notifications","",`<div class="list">
+    <div class="row"><div class="grow"><b>Remind me before tasks</b><div class="meta">A heads-up before each task with a time</div></div><select class="inp" id="ns-before" data-ns="before" aria-label="Minutes before">${[0,5,10,15,30,60].map(n=>`<option value="${n}" ${+ns.before===n?"selected":""}>${n?n+" min before":"Off"}</option>`).join("")}</select></div>
+    <div class="row"><div class="grow"><b>Ask if I finished</b><div class="meta">One hour after a task, if it is not done</div></div>${sw("nudge",ns.nudge,"Ask if I finished")}</div>
+    <div class="row"><div class="grow"><b>Morning briefing</b><div class="meta">Aether tells you your plan for the day</div></div><input class="inp" type="time" id="ns-mt" data-ns="morning.time" value="${ns.morning.time}" aria-label="Morning briefing time">${sw("morning",ns.morning.on,"Morning briefing")}</div>
+    <div class="row"><div class="grow"><b>Evening review</b><div class="meta">What you finished and what is left</div></div><input class="inp" type="time" id="ns-et" data-ns="evening.time" value="${ns.evening.time}" aria-label="Evening review time">${sw("evening",ns.evening.on,"Evening review")}</div>
+    <div class="row"><div class="grow"><b>Pop-up notifications</b><div class="meta">${perm==="granted"?"On. You also get browser notifications.":perm==="denied"?"Blocked in your browser settings.":"Also show notifications outside this tab"}</div></div>${perm==="granted"?`<span class="status posted">on</span>`:`<button class="btn ghost sm" data-act="alerts">Allow</button>`}</div>
+  </div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn ghost sm" data-act="briefNow" data-id="morning">${ic("spark")}Play morning briefing</button><button class="btn ghost sm" data-act="briefNow" data-id="evening">Play evening review</button></div>`,"",60);
+}
+function vSocialAlerts(){
+  const ns=S.nset.social;
+  return card("Social media & messages","",`<div class="list">${Object.keys(INBOX).map(p=>`<div class="row"><span class="plat-badge" style="background:${PLATFORMS[p]};width:34px;height:34px;font-size:13px;border-radius:10px">${p[0]}</span><div class="grow"><b>${p}</b><div class="meta">Check-in reminders</div></div>
+      <button class="check" data-act="nsPlat" data-id="${p}" aria-pressed="${ns.plats.includes(p)}" aria-label="Remind me to check ${p}"></button>${goA({href:INBOX[p],label:"Inbox"})}</div>`).join("")}</div>
+    <div class="row" style="margin-top:6px"><div class="grow"><b>Message check-ins</b><div class="meta">Remind me to check the ticked apps at these times</div></div>${`<button class="switch" data-act="nsToggle" data-id="social" aria-pressed="${!!ns.on}" aria-label="Message check-ins"></button>`}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">${ns.times.map((tm,i)=>`<input class="inp" type="time" id="ns-st${i}" data-ns="social.times.${i}" value="${tm}" aria-label="Check-in time ${i+1}">`).join("")}${ns.times.length<4?`<button class="btn ghost sm" data-act="nsAddTime">${ic("plus")}Time</button>`:""}</div>
+    <p class="note">Aether can't read your Instagram, Facebook, LinkedIn, X or WhatsApp inbox from a web page. For now it reminds you to check them and opens each inbox in one tap. Live alerts for new messages need the AETHER server, which is the next step.</p>`,"",120);
+}
 function vAlerts(){
   const up=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at),past=S.alerts.filter(a=>!a.on).sort((a,b)=>(b.fired||b.at)-(a.fired||a.at)).slice(0,8);
-  return `<div class="grid g2">
+  return `<div class="grid g2">${vFeed()}${vNotifSettings()}${vSocialAlerts()}
     ${card("New alert","Pop-up, sound and voice",`<form class="stack" data-form="alert">
       <input class="inp" id="al-text" name="text" placeholder="What should I remind you? e.g. Take medicine" aria-label="Alert message">
       <div class="quick">${[[5,"In 5 min"],[15,"In 15 min"],[30,"In 30 min"],[60,"In 1 hour"]].map(([n,l])=>`<button type="button" class="sug" data-act="quickAlert" data-n="${n}">${ic("clock","style='width:13px;height:13px;vertical-align:-2px'")} ${l}</button>`).join("")}</div>

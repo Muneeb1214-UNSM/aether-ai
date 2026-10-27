@@ -10,7 +10,7 @@ Your personal assistant dashboard. Plan your day, track your health and study, r
 | --- | --- |
 | Home | Greeting, day progress ring, key numbers, today's plan with a "Now" line, weekly chart, habits, upcoming posts and goals |
 | Schedule | Add tasks with date, time, type and repeat. Filter by Today, Tomorrow, Next 7 days or All. A pop-up and sound remind you on time |
-| Alerts | Alarms and reminders: once, every day, weekdays, or every few minutes/hours. Quick buttons (in 5, 15, 30 min, 1 hour). When an alert rings you get a full-screen pop-up, a repeating sound, Aether reads the message out loud, and you can tap **Got it** or **Snooze 5 min** |
+| Alerts | Alarms and reminders: once, every day, weekdays, or every few minutes/hours. Quick buttons (in 5, 15, 30 min, 1 hour). When an alert rings you get a full-screen pop-up, a repeating sound, Aether reads the message out loud, and you can tap **Got it** or **Snooze 5 min**. Also has **What's happening** (a feed of every reminder, alert, briefing and check-in, with an unread badge on the bell), **smart notifications** (heads-up before tasks, "did you finish?" nudges, spoken morning briefing and evening review) and **message check-ins** for Instagram, Facebook, LinkedIn, X and WhatsApp with one-tap links to each inbox |
 | Health | Tap glasses to log water, sleep slider, steps, exercise switch, mood, and 7-day charts with goal lines |
 | Study | 25-minute focus timer with a live ring, subjects with weekly goals, manual study log and a weekly chart |
 | Career | Big goals broken into small steps, with progress rings |
@@ -48,6 +48,7 @@ Try saying:
 - "Set an alarm for 6 am" / "Wake me up tomorrow at 7:30 am"
 - "Remind me every hour to drink water"
 - "What alerts do I have?" / "Cancel alert drink water"
+- "What's happening?" / "What did I miss?" / "Brief me"
 
 - "Add task gym at 6 pm"
 - "Add task call mom at 8:30 pm tomorrow"
@@ -82,6 +83,7 @@ Download the repo and open `index.html` in Chrome or Edge.
 
 ## Roadmap
 
+- [ ] Live alerts for new social media messages and notifications (needs the AETHER server and each platform's API)
 - [ ] Fully automatic WhatsApp sending through the WhatsApp Business API (needs a small server)
 - [ ] Reminders on your phone when the page is closed
 - [ ] Auto-posting and real analytics through social media APIs
