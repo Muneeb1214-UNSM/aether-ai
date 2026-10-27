@@ -10,6 +10,7 @@ Your personal assistant dashboard. Plan your day, track your health and study, r
 | --- | --- |
 | Home | Greeting, day progress ring, key numbers, today's plan with a "Now" line, weekly chart, habits, upcoming posts and goals |
 | Schedule | Add tasks with date, time, type and repeat. Filter by Today, Tomorrow, Next 7 days or All. A pop-up and sound remind you on time |
+| Alerts | Alarms and reminders: once, every day, weekdays, or every few minutes/hours. Quick buttons (in 5, 15, 30 min, 1 hour). When an alert rings you get a full-screen pop-up, a repeating sound, Aether reads the message out loud, and you can tap **Got it** or **Snooze 5 min** |
 | Health | Tap glasses to log water, sleep slider, steps, exercise switch, mood, and 7-day charts with goal lines |
 | Study | 25-minute focus timer with a live ring, subjects with weekly goals, manual study log and a weekly chart |
 | Career | Big goals broken into small steps, with progress rings |
@@ -39,7 +40,14 @@ Aether prepares messages and reminds you on time. When you tap **Send now**, Wha
 
 Tap the round button at the bottom right and speak, or type. Aether answers out loud.
 
+**Conversation mode:** tap **Start conversation** and just talk. Aether listens, answers out loud, and listens again, so you can talk back and forth without tapping. Say "stop" or "bye" to end it.
+
 Try saying:
+
+- "Remind me in 10 minutes to call mom"
+- "Set an alarm for 6 am" / "Wake me up tomorrow at 7:30 am"
+- "Remind me every hour to drink water"
+- "What alerts do I have?" / "Cancel alert drink water"
 
 - "Add task gym at 6 pm"
 - "Add task call mom at 8:30 pm tomorrow"

@@ -325,6 +325,31 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .msg a.wa-link{margin-top:8px}
 .toast a{color:inherit;font-weight:700}
 
+/* conversation mode */
+.conv-btn{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.conv-btn svg{width:16px;height:16px}
+.conv-btn[aria-pressed="true"]{background:linear-gradient(120deg,var(--a1),var(--a2));color:var(--on-accent);border-color:transparent}
+.conv-btn .live{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.5}
+.conv-btn[aria-pressed="true"] .live{opacity:1;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.2}}
+.orb.speaking{animation:breathe .6s ease-in-out infinite}
+
+/* alerts */
+.alert-pop{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:16px;background:rgba(5,8,20,.65);backdrop-filter:blur(6px)}
+.alert-card{width:min(420px,100%);text-align:center;border-radius:26px;padding:30px 24px;color:#fff;background:linear-gradient(140deg,#7c2d12,#db2777 50%,#7c3aed);box-shadow:0 30px 90px rgba(219,39,119,.45)}
+@media (prefers-reduced-motion:no-preference){.alert-card{animation:vain .45s cubic-bezier(.2,1.3,.4,1)}}
+.alert-bell{width:78px;height:78px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.18)}
+.alert-bell svg{width:38px;height:38px}
+@media (prefers-reduced-motion:no-preference){.alert-bell svg{animation:ring 1s ease-in-out infinite;transform-origin:50% 10%}}
+@keyframes ring{0%,100%{transform:rotate(0)}15%{transform:rotate(18deg)}30%{transform:rotate(-16deg)}45%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}}
+.alert-card h2{font-size:24px;margin:4px 0 8px;overflow-wrap:anywhere}
+.alert-card p{margin:0 0 20px;opacity:.9}
+.alert-card .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.alert-card .btn-hero{padding:12px 22px}
+.quick{display:flex;gap:8px;flex-wrap:wrap}
+.cd{font-family:var(--f-mono);font-size:12px;color:var(--a2);font-weight:600}
+.rep-tag{color:var(--a3)}
+
 /* phone & small tablet: tabs become a bottom bar */
 @media (max-width:760px){
   header.top{padding-block:12px 4px}
@@ -380,6 +405,7 @@ input[type=range]{width:100%;accent-color:var(--a2)}
     <button class="orb" id="orb" aria-label="Tap and speak"></button>
     <div class="va-state" id="vaState">Tap the circle and speak</div>
     <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <button class="conv-btn" id="convBtn" type="button" aria-pressed="false"><span class="live"></span><span id="convLbl">Start conversation</span></button>
   </div>
   <div class="va-log" id="vaLog" aria-live="polite"></div>
   <div class="sugs" id="sugs"></div>
@@ -403,6 +429,11 @@ input[type=range]{width:100%;accent-color:var(--a2)}
   </div>
 </div>
 <div class="modal" id="modal" hidden></div>
+<div class="alert-pop" id="alertPop" hidden role="alertdialog" aria-modal="true" aria-labelledby="alertTitle">
+  <div class="alert-card"><div class="alert-bell" id="alertBell"></div><div class="eyebrow" style="color:rgba(255,255,255,.8)" id="alertWhen">Alert</div>
+    <h2 id="alertTitle"></h2><p id="alertMore"></p>
+    <div class="acts"><button class="btn-hero" id="alertDone">Got it</button><button class="btn-hero alt" id="alertSnooze">Snooze 5 min</button></div></div>
+</div>
 
 <script>
 /* ---------- icons ---------- */
@@ -438,6 +469,7 @@ const ic=(n,extra="")=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const SECTIONS=[
   {id:"home",label:"Home",icon:"home",sub:"Your day at a glance."},
   {id:"schedule",label:"Schedule",icon:"cal",sub:"Plan your tasks. Aether reminds you on time."},
+  {id:"alerts",label:"Alerts",icon:"bell",sub:"Alarms and reminders with a pop-up, sound and voice."},
   {id:"health",label:"Health",icon:"heart",sub:"Water, sleep, steps and mood."},
   {id:"study",label:"Study",icon:"book",sub:"Track study time and stay focused."},
   {id:"career",label:"Career",icon:"brief",sub:"Big goals, broken into small steps."},
@@ -451,7 +483,7 @@ const PLATFORMS={Instagram:"#d6297a",Facebook:"#1877f2",LinkedIn:"#0a66c2",X:"#1
 const MOODS=[["Bad","var(--bad)"],["Low","var(--warm)"],["Okay","var(--muted)"],["Good","var(--c-study)"],["Great","var(--ok)"]];
 const STEP_GOAL=8000;
 
-const blank=()=>({profile:null,tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},wa:{contacts:[],scheduled:[]},example:false});
+const blank=()=>({profile:null,alerts:[],tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},wa:{contacts:[],scheduled:[]},example:false});
 let S=blank(), view="home", schedFilter="today", store={kind:"none"}, pendingSave=null, saving=Promise.resolve(), dirty=false, animate=true;
 
 const pad=n=>String(n).padStart(2,"0");
@@ -565,7 +597,8 @@ function aiContext(){
     studyMinutesToday:studyMins(t),subjects:S.study.subjects.map(s=>s.name),
     goals:S.career.map(g=>({title:g.title,progress:Math.round(gp(g)*100)+"%",nextStep:(g.milestones.find(m=>!m.done)||{}).t||null})),
     habits:S.habits.map(x=>({name:x.name,doneToday:!!(x.days&&x.days[t]),streak:streak(x)})),
-    whatsappContacts:S.wa.contacts.map(c=>c.name)};
+    whatsappContacts:S.wa.contacts.map(c=>c.name),
+    alerts:S.alerts.filter(a=>a.on).map(a=>({message:a.text,next:new Date(a.at).toString(),repeat:a.rep}))};
 }
 const AI_SYSTEM=`You are Aether, a friendly personal assistant inside the AETHER AI dashboard. The user may not be technical, so always answer in short, simple English (1-3 sentences, no markdown, no lists unless asked). You can answer any general question, give advice, and you can also change the dashboard by returning actions.
 Reply with ONLY a JSON object, no other text: {"reply": "what you say to the user", "actions": [ ... ]}
@@ -577,6 +610,9 @@ Allowed actions (use [] if none):
 {"type":"add_habit","name":"..."}
 {"type":"open_tab","tab":"home|schedule|health|study|career|habits|social|whatsapp"}
 {"type":"whatsapp","contact":"name from the contact list or empty","phone":"digits with country code or empty","message":"..."}
+{"type":"set_alert","message":"...","in_minutes":10}  or  {"type":"set_alert","message":"...","date":"YYYY-MM-DD","time":"HH:MM","repeat":"once|daily|weekdays"}  or  {"type":"set_alert","message":"...","repeat":"interval","every_minutes":60}
+{"type":"cancel_alert","message":"words from the alert to cancel"}
+You are in a spoken conversation, so keep replies short and natural, and ask a short follow-up question when something is missing.
 Only add an action when the user clearly asks for that change. Use the dashboard data to give personal answers.`;
 async function askAI(text){
   const ctx="Dashboard data (JSON): "+JSON.stringify(aiContext());
@@ -605,6 +641,12 @@ function runActions(actions){
       case"set_steps":if(+a.steps>=0){hd().steps=String(Math.round(+a.steps));changed=true}break;
       case"add_habit":if(a.name){S.habits.push({id:uid(),name:String(a.name),days:{}});changed=true}break;
       case"open_tab":if(VIEWS[a.tab])go(a.tab);break;
+      case"set_alert":{const msg=String(a.message||"Reminder");let at=0,rep="once",every=0;
+        if(a.repeat==="interval"&&+a.every_minutes>=1){rep="interval";every=Math.round(+a.every_minutes);at=Date.now()+every*60000}
+        else if(+a.in_minutes>0)at=Date.now()+Math.round(+a.in_minutes*60000);
+        else if(/^\d{2}:\d{2}$/.test(a.time||"")){at=new Date((/^\d{4}-\d{2}-\d{2}$/.test(a.date||"")?a.date:today())+"T"+a.time).getTime();rep=["daily","weekdays"].includes(a.repeat)?a.repeat:"once";if(at<=Date.now()&&rep!=="once")while(at<=Date.now())at+=864e5}
+        if(at>Date.now()){addAlert({text:msg,at,rep,every})}break}
+      case"cancel_alert":{const q=String(a.message||"").toLowerCase();const x=S.alerts.find(x=>x.on&&x.text.toLowerCase().includes(q));if(x){x.on=false;changed=true}break}
       case"whatsapp":{const c=a.contact&&findContact(a.contact);const phone=(c&&c.phone)||a.phone||"";links.push({label:"Open WhatsApp"+(c?" to "+c.name:""),href:waLink(phone,a.message||"")});break}
     }}catch(e){}
   }
@@ -693,6 +735,7 @@ function vHome(){
     <div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div>
     <h1 style="margin-top:6px">${greet}${firstName()?", "+esc(firstName()):""}!</h1>
     <p>${tt.length?`You have <b>${tt.length}</b> tasks today and <b>${done}</b> are done.`:"You have no tasks today."} ${next?`Next: <b>${esc(next.title)}</b>${next.time?` at ${fmtTime(next.time)}`:""}.`:tt.length?"Everything is done. Great work!":""}</p>
+    ${(()=>{const na=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at)[0];return na?`<p style="margin-top:6px">${ic("bell","style='width:15px;height:15px;vertical-align:-2px'")} Next alert: <b>${esc(na.text)}</b> ${whenText(na.at)} (<span data-cd="${na.at}">${untilText(na.at)}</span>)</p>`:""})()}
     <div class="hero-acts"><button class="btn-hero" data-act="openVoice">${ic("mic")}Talk to Aether</button><button class="btn-hero alt" data-go="schedule">${ic("plus")}Add a task</button></div>
   </div>${ring(dayP/100,128,12,"#fff",dayP+"%","of your day")}</div></section>
   <div class="grid g4" style="margin-top:16px">
@@ -859,7 +902,7 @@ function openSettings(){
     </div></div>`;
 }
 
-const VIEWS={home:vHome,schedule:vSchedule,health:vHealth,study:vStudy,career:vCareer,habits:vHabits,social:vSocial,whatsapp:vWhatsApp};
+const VIEWS={home:vHome,schedule:vSchedule,alerts:vAlerts,health:vHealth,study:vStudy,career:vCareer,habits:vHabits,social:vSocial,whatsapp:vWhatsApp};
 function render(){
   const sec=SECTIONS.find(s=>s.id===view),main=document.getElementById("main");
   main.className=animate?"anim":"";
@@ -888,7 +931,8 @@ function checkAlerts(){
     notify("WhatsApp message for "+c.name,m.text.slice(0,80),{href:waLink(c.phone,m.text),label:"Send now"});m.notified=true;ch=true}
   if(ch){save();render()}
 }
-function startAlerts(){checkAlerts();setInterval(checkAlerts,20000)}
+let lastMinuteCheck=0;
+function startAlerts(){checkAlerts();checkCustomAlerts();setInterval(()=>{checkCustomAlerts();if(Date.now()-lastMinuteCheck>20000){lastMinuteCheck=Date.now();checkAlerts()}},5000)}
 async function askNotify(){
   beep();
   try{if(!("Notification" in window))throw 0;const r=await Notification.requestPermission();if(r==="granted"){toast("Alerts are on","You will also get notifications from your browser.");return}throw 0}
@@ -953,6 +997,10 @@ document.addEventListener("click",e=>{
     case"waSent":{const m=find(S.wa.scheduled,id);if(m.rep==="daily"){m.date=addDays(m.date<t?t:m.date,1);m.notified=false}else m.sent=true;save();setTimeout(render,300);return}
     case"delWaS":S.wa.scheduled=S.wa.scheduled.filter(m=>m.id!==id);break;
     case"delWaC":S.wa.contacts=S.wa.contacts.filter(c=>c.id!==id);break;
+    case"quickAlert":{const txt=(document.getElementById("al-text").value.trim())||"Reminder";const a=addAlert({text:txt[0].toUpperCase()+txt.slice(1),at:Date.now()+n*60000,rep:"once"});toast("Alert set",`"${a.text}" ${untilText(a.at)}.`);return}
+    case"toggleAlert":{const a=find(S.alerts,id);a.on=!a.on;if(a.on&&a.at<=Date.now())a.at=a.rep==="interval"?Date.now()+a.every*60000:nextAt(a);break}
+    case"delAlert":S.alerts=S.alerts.filter(a=>a.id!==id);break;
+    case"clearAlerts":S.alerts=S.alerts.filter(a=>a.on);break;
     default:return;
   }
   save();render();
@@ -973,6 +1021,15 @@ document.addEventListener("submit",e=>{
     case"account":S.social.accounts.push({id:uid(),platform:d.platform,handle:d.handle.trim(),history:d.f!==""?[{date:today(),followers:+d.f}]:[]});break;
     case"followers":{if(d.n==="")return;const a=find(S.social.accounts,fid);a.history=(a.history||[]).filter(h=>h.date!==today());a.history.push({date:today(),followers:+d.n});break}
     case"post":S.social.posts.push({id:uid(),platform:d.platform,date:d.date,time:d.time,text:d.text.trim(),status:"scheduled"});toast("Post planned","Aether will remind you.");break;
+    case"alert":{const txt=(d.text||"").trim()||"Reminder";
+      if(d.rep==="interval"){const ev=+d.every;if(!(ev>=1)){toast("How often?","Type the number of minutes, e.g. 60 for every hour.");return}
+        const at=d.time?(()=>{let x=new Date(d.date+"T"+d.time).getTime();while(x<=Date.now())x+=ev*60000;return x})():Date.now()+ev*60000;
+        const a=addAlert({text:txt,at,rep:"interval",every:ev});toast("Alert set",alertConfirm(a));return}
+      if(!d.time){toast("Pick a time","Choose a time, or use a quick button like In 15 min.");return}
+      let at=new Date(d.date+"T"+d.time).getTime();
+      if(at<=Date.now()){if(d.rep==="once"){toast("That time has passed","Choose a time in the future.");return}while(at<=Date.now())at+=864e5}
+      if(d.rep==="weekdays")while([0,6].includes(new Date(at).getDay()))at+=864e5;
+      const a=addAlert({text:txt[0].toUpperCase()+txt.slice(1),at,rep:d.rep});toast("Alert set",alertConfirm(a));return}
     case"waContact":{if(digits(d.phone).length<8){toast("Check the number","Use the full number with country code, e.g. 923001234567.");return}S.wa.contacts.push({id:uid(),name:d.name.trim(),phone:digits(d.phone)});toast("Contact saved",d.name.trim());break}
     case"waSched":S.wa.scheduled.push({id:uid(),to:d.to,date:d.date,time:d.time,rep:d.rep,text:d.text.trim(),sent:false});toast("Message scheduled","Aether will remind you at "+fmtTime(d.time)+".");break;
     case"waSend":{const c=find(S.wa.contacts,d.to);const phone=c?c.phone:digits(d.phone);if(!d.text.trim()){toast("Message is empty","Type a message first.");return}
@@ -1004,11 +1061,11 @@ try{muted=localStorage.getItem("aether-mute")==="1"}catch(e){}
 document.getElementById("fab").innerHTML=ic("mic");orb.innerHTML=ic("mic");document.getElementById("vaClose").innerHTML=ic("x");
 const paintMute=()=>document.getElementById("muteBtn").innerHTML=ic(muted?"mute":"vol");paintMute();
 document.getElementById("muteBtn").onclick=()=>{muted=!muted;try{localStorage.setItem("aether-mute",muted?"1":"0")}catch(e){}paintMute();if(muted)try{speechSynthesis.cancel()}catch(e){}};
-const SUGS=["What is my plan today?","Add task gym at 6 pm","I drank water","I slept 7 hours","Start focus timer","Open WhatsApp","How am I doing?","Help"];
+const SUGS=["Remind me in 1 minute to stretch","What is my plan today?","Set an alarm for 6 am","Add task gym at 6 pm","I drank water","What alerts do I have?","Start focus timer","How am I doing?","Help"];
 document.getElementById("sugs").innerHTML=SUGS.map(s=>`<button class="sug" type="button">${s}</button>`).join("");
 document.getElementById("sugs").onclick=e=>{const s=e.target.closest(".sug");if(s)handle(s.textContent)};
 document.getElementById("fab").onclick=openVA;
-document.getElementById("vaClose").onclick=()=>{va.hidden=true;stopListen();document.getElementById("fab").hidden=false;document.getElementById("fabLabel").hidden=false};
+document.getElementById("vaClose").onclick=()=>{va.hidden=true;if(convOn)setConv(false);stopListen();document.getElementById("fab").hidden=false;document.getElementById("fabLabel").hidden=false};
 let greeted=false;
 function openVA(){va.hidden=false;document.getElementById("fab").hidden=true;document.getElementById("fabLabel").hidden=true;
   if(!greeted){greeted=true;const hr=new Date().getHours();addMsg("ai",(hr<12?"Good morning":hr<17?"Good afternoon":"Good evening")+"! I am Aether. Tap the circle and talk to me, or type below. Say \"help\" to see what I can do.")}
@@ -1016,21 +1073,55 @@ function openVA(){va.hidden=false;document.getElementById("fab").hidden=true;doc
 function addMsg(who,text,links){const m=document.createElement("div");m.className="msg "+who;m.textContent=text;
   (links||[]).forEach(l=>{const w=document.createElement("div");w.innerHTML=waA(l.href,l.label);m.appendChild(w)});
   vaLog.appendChild(m);vaLog.scrollTop=vaLog.scrollHeight;return m}
-function speak(text){if(muted)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=1;const v=speechSynthesis.getVoices().find(v=>/en(-|_)(US|GB)/.test(v.lang)&&/female|samantha|zira|aria|jenny|google us/i.test(v.name));if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){}}
+function speak(text,force){
+  return new Promise(res=>{
+    if(muted&&!convOn&&!force)return res();
+    try{
+      speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=1;
+      const v=speechSynthesis.getVoices().find(v=>/en(-|_)(US|GB)/.test(v.lang)&&/female|samantha|zira|aria|jenny|google us/i.test(v.name));if(v)u.voice=v;
+      let done=false;const fin=()=>{if(done)return;done=true;orb.classList.remove("speaking");res()};
+      u.onend=fin;u.onerror=fin;setTimeout(fin,Math.min(30000,1500+text.length*90));
+      orb.classList.add("speaking");speechSynthesis.speak(u);
+    }catch(e){res()}
+  });
+}
+/* one reply from Aether: show it, say it, then keep listening in conversation mode */
+function reply(text,links,keepTalking=true){
+  addMsg("ai",text,links);
+  speak(text).then(()=>{if(convOn&&keepTalking&&!va.hidden&&!listening)setTimeout(startListen,250)});
+}
+let convOn=false,silent=0;
+function setConv(on){
+  convOn=on;silent=0;const b=document.getElementById("convBtn");b.setAttribute("aria-pressed",on);
+  document.getElementById("convLbl").textContent=on?"End conversation":"Start conversation";
+  if(!on){stopListen();try{speechSynthesis.cancel()}catch(e){}}
+}
+document.getElementById("convBtn").onclick=()=>{
+  if(convOn){setConv(false);addMsg("ai","Conversation ended. Tap the button any time to talk again.");return}
+  if(!SR){addMsg("ai","Your browser cannot listen here. Open AETHER in Chrome or Edge to have a conversation.");return}
+  setConv(true);reply(`I'm listening${firstName()?", "+firstName():""}. Just talk to me. Say "stop" when you are done.`);
+};
 document.getElementById("vaForm").onsubmit=e=>{e.preventDefault();const i=document.getElementById("vaText");if(i.value.trim())handle(i.value.trim());i.value=""};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-orb.onclick=()=>listening?stopListen():startListen();
-function setListen(on,msg){listening=on;orb.classList.toggle("listening",on);document.getElementById("vaStage").classList.toggle("listening-on",on);vaState.textContent=msg}
+orb.onclick=()=>{if(orb.classList.contains("speaking")){try{speechSynthesis.cancel()}catch(e){}orb.classList.remove("speaking");startListen();return}listening?stopListen():startListen()};
+const idleMsg=()=>convOn?"Conversation is on":"Tap the circle and speak";
+function setListen(on,msg){listening=on;orb.classList.toggle("listening",on);document.getElementById("vaStage").classList.toggle("listening-on",on);vaState.textContent=msg||idleMsg()}
 function startListen(){
   if(!SR){setListen(false,"Voice is not supported here");addMsg("ai","Your browser cannot listen here. Open AETHER in Chrome or Edge to talk, or type your message below.");return}
+  if(listening)return;
   try{speechSynthesis.cancel()}catch(e){}
-  rec=new SR();rec.lang="en-US";rec.interimResults=true;rec.maxAlternatives=1;let final="";
+  rec=new SR();rec.lang="en-US";rec.interimResults=true;rec.maxAlternatives=1;let final="",blocked=false;
   rec.onresult=e=>{let txt="";for(const r of e.results){txt+=r[0].transcript;if(r.isFinal)final=txt}vaState.textContent="“"+txt+"”"};
-  rec.onerror=e=>{setListen(false,"Tap the circle and speak");if(e.error==="not-allowed"||e.error==="service-not-allowed")addMsg("ai","I can't use the microphone here. Allow the microphone in your browser, or type your message below.");else if(e.error==="no-speech")addMsg("ai","I didn't hear anything. Tap the circle and try again.")};
-  rec.onend=()=>{setListen(false,"Tap the circle and speak");if(final.trim())handle(final.trim())};
-  try{rec.start();setListen(true,"Listening…")}catch(e){setListen(false,"Tap the circle and speak")}
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){blocked=true;setConv(false);addMsg("ai","I can't use the microphone here. Allow the microphone in your browser, or type your message below.")}
+    else if(e.error==="no-speech"&&!convOn)addMsg("ai","I didn't hear anything. Tap the circle and try again.")};
+  rec.onend=()=>{setListen(false);
+    if(final.trim()){silent=0;handle(final.trim());return}
+    if(convOn&&!blocked&&!va.hidden){silent++;
+      if(silent>=3){setConv(false);reply("I'll be here when you need me. Tap Start conversation to talk again.",null,false)}
+      else setTimeout(startListen,300)}};
+  try{rec.start();setListen(true,convOn?"Listening… just talk":"Listening…")}catch(e){setListen(false)}
 }
-function stopListen(){try{rec&&rec.stop()}catch(e){}setListen(false,"Tap the circle and speak")}
+function stopListen(){try{rec&&rec.stop()}catch(e){}setListen(false)}
 
 function parseTime(s){
   let m=s.match(/\b(?:at\s+)?(\d{1,2})(?::|\.)?(\d{2})?\s*(a\.?\s?m\.?|p\.?\s?m\.?)/i)||s.match(/\bat\s+(\d{1,2})(?::(\d{2}))?\b/i);
@@ -1053,10 +1144,25 @@ function handle(raw){
   const tab=SECTIONS.find(x=>new RegExp("\\b(open|show|go to)\\b.*\\b"+x.label.toLowerCase()).test(s)||(x.id==="social"&&/\b(open|show)\b.*\bsocial/.test(s)));
   let m;
   const wm=raw.match(/^(?:please\s+)?(?:send\s+)?(?:a\s+)?(?:whatsapp|message|text|msg)\s+(?:message\s+)?(?:to\s+)?([a-z]+)\s*(?:saying|that|say|:)?\s*(.*)$/i);
-  if(/^(help|what can you do)/.test(s)){r="You can say: add task gym at 6 pm. What is my plan today? I drank water. I slept 7 hours. Start focus timer. Mark gym done. Message Ali saying I am on my way. Open WhatsApp. How am I doing?"+(aiMode()==="basic"?" Turn on smart AI in AI settings to ask me anything.":" You can also ask me anything!")}
+  if(convOn&&/^(stop|bye|goodbye|good bye|that's all|thats all|stop listening|end conversation|exit|nothing)\b/.test(s)){setConv(false);reply("Okay! Talk to you later.",null,false);return}
+  if(/^(stop|cancel|never mind|nevermind)$/.test(s)){pendingAlert=null;reply("Okay, cancelled.");return}
+  if(pendingAlert){const p=parseAlert("remind me "+s+" to "+pendingAlert);pendingAlert=null;
+    if(p.at){const a=addAlert(p);reply(alertConfirm(a));return}}
+  if(/^(help|what can you do)/.test(s)){r="You can say: add task gym at 6 pm. Remind me in 10 minutes to call mom. Set an alarm for 6 am. Remind me every hour to drink water. What alerts do I have? What is my plan today? I drank water. Start focus timer. Message Ali saying I am on my way. How am I doing?"+(aiMode()==="basic"?" Turn on smart AI in AI settings to ask me anything.":" You can also ask me anything!")}
+  else if(/^(?:please\s+)?(?:remind me|set (?:an? |my )?(?:alert|alarm|reminder|timer)|alert me|wake me|create (?:an? )?(?:alert|alarm|reminder)|add (?:an? )?(?:alert|alarm|reminder))\b/.test(s)){
+    const p=parseAlert(s);
+    if(p.at){const a=addAlert(p);r=alertConfirm(a)}
+    else{pendingAlert=p.text;r=`Sure. When should I remind you${p.text&&p.text!=="Reminder"?" to "+p.text.toLowerCase():""}? For example, say "in 10 minutes" or "at 5 pm".`}}
+  else if(/\b(what|which|show|list|any)\b.*\b(alerts?|alarms?|reminders?)\b/.test(s)){
+    const up=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at);
+    r=up.length?`You have ${up.length} alert${up.length>1?"s":""}: `+up.slice(0,4).map(a=>`${a.text} ${whenText(a.at)}`).join(", ")+(up.length>4?", and more.":"."):"You have no alerts right now. Say: remind me in 10 minutes to stretch."}
+  else if(m=s.match(/^(?:cancel|delete|remove|stop|turn off)\s+(?:the\s+|my\s+)?(all\s+)?(?:alerts?|alarms?|reminders?)\s*(?:for|about|to)?\s*(.*)$/)){
+    if(m[1]){const n=S.alerts.filter(a=>a.on).length;S.alerts.forEach(a=>a.on=false);save();render();r=`Done. I turned off ${n} alert${n===1?"":"s"}.`}
+    else{const q=m[2].trim();const a=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at).find(a=>!q||a.text.toLowerCase().includes(q));
+      if(a){a.on=false;save();render();r=`Okay, I turned off the alert "${a.text}".`}else r=q?`I couldn't find an alert about "${q}".`:"You have no alerts to cancel."}}
   else if(wm&&findContact(wm[1])){const c=findContact(wm[1]);const text=wm[2].trim();
     r=text?`Your message to ${c.name} is ready. Tap the button to send it in WhatsApp.`:`What should I tell ${c.name}? Say: message ${c.name} saying hello.`;
-    const links=text?[{href:waLink(c.phone,text[0].toUpperCase()+text.slice(1)),label:"Send to "+c.name}]:[];addMsg("ai",r,links);speak(r);return}
+    reply(r,text?[{href:waLink(c.phone,text[0].toUpperCase()+text.slice(1)),label:"Send to "+c.name}]:[]);return}
   else if(m=s.match(/^(?:add|create|new|remind me to|remind me)\s+(?:a\s+)?(?:task\s+|reminder\s+)?(?:to\s+)?(.+)/)){
     let body=m[1];const time=parseTime(body);const tomorrow=/\btomorrow\b/.test(body);
     let title=body.replace(/\b(?:at\s+)?\d{1,2}(?:[:.]\d{2})?\s*(?:a\.?\s?m\.?|p\.?\s?m\.?)/gi,"").replace(/\bat\s+\d{1,2}(?:[:.]\d{2})?\b/gi,"").replace(/\b(tomorrow|today|at)\b/gi,"").replace(/\s+/g," ").trim();
@@ -1084,12 +1190,93 @@ function handle(raw){
   else if(/thank/.test(s)){r="You're welcome!"}
   else if(aiMode()!=="basic"){
     const bubble=addMsg("ai","Thinking…");vaState.textContent="Thinking…";
-    askAI(raw).then(out=>{const links=runActions(out.actions);bubble.remove();addMsg("ai",out.reply||"Done.",links);speak(out.reply||"Done.")})
-      .catch(()=>{bubble.remove();const m="I can't reach the smart AI right now. Check your internet or your key in AI settings.";addMsg("ai",m);speak(m)})
-      .finally(()=>{vaState.textContent="Tap the circle and speak"});
+    askAI(raw).then(out=>{const links=runActions(out.actions);bubble.remove();vaState.textContent=idleMsg();reply(out.reply||"Done.",links)})
+      .catch(()=>{bubble.remove();vaState.textContent=idleMsg();reply("I can't reach the smart AI right now. Check your internet or your key in AI settings.")});
     return}
   else{r="Sorry, I didn't get that. Say \"help\" to see what I can do. To ask me anything, turn on smart AI in AI settings from your profile picture."}
-  addMsg("ai",r);speak(r);
+  reply(r);
+}
+
+/* ---------- alerts ---------- */
+let pendingAlert=null;
+const REP_LABEL={once:"Once",daily:"Every day",weekdays:"Weekdays",interval:"Repeats"};
+const NUMW={a:1,an:1,one:1,two:2,three:3,four:4,five:5,ten:10,fifteen:15,twenty:20,thirty:30,forty:40,"forty five":45,sixty:60};
+function hmToday(hm,dayOffset=0){const[h,mi]=hm.split(":").map(Number);const d=new Date();d.setDate(d.getDate()+dayOffset);d.setHours(h,mi,0,0);return d.getTime()}
+function parseAlert(s){
+  s=s.toLowerCase().replace(/[?!.,]+$/,"");let at=0,rep="once",every=0;
+  let m;
+  const unitMin=u=>/^h/.test(u)?60:/^s/.test(u)?1/60:1;
+  if(m=s.match(/\bin\s+(half an?|\d+|an?|one|two|three|four|five|ten|fifteen|twenty|thirty|forty|sixty)\s*(seconds?|secs?|minutes?|mins?|hours?|hrs?)\b/)){
+    const n=m[1].startsWith("half")?.5:(+m[1]||NUMW[m[1]]||1);at=Date.now()+Math.round(n*unitMin(m[2])*60000)}
+  if(m=s.match(/\bevery\s+(\d+|an?|one|two|three|ten|fifteen|twenty|thirty)?\s*(minutes?|mins?|hours?|hrs?)\b/)){
+    rep="interval";every=Math.max(1,Math.round((+m[1]||NUMW[m[1]]||1)*unitMin(m[2])));if(!at)at=Date.now()+every*60000}
+  else if(/\b(weekdays|every weekday)\b/.test(s))rep="weekdays";
+  else if(/\b(every day|everyday|daily|every morning|every night|every evening)\b/.test(s))rep="daily";
+  const tm=parseTime(s.replace(/\bfor\s+(?=\d)/,"at "));
+  if(tm&&!at){const tomorrow=/\btomorrow\b/.test(s);at=hmToday(tm,tomorrow?1:0);if(at<=Date.now())at=hmToday(tm,1);
+    if(rep==="weekdays")while([0,6].includes(new Date(at).getDay()))at+=864e5}
+  let text="";
+  if(m=s.match(/\b(?:to|that|saying|about)\s+(.+)$/))text=m[1];
+  text=text.replace(/\bin\s+(half an?|\d+|an?|one|two|three|four|five|ten|fifteen|twenty|thirty|forty|sixty)\s*(seconds?|secs?|minutes?|mins?|hours?|hrs?)\b/g,"")
+    .replace(/\bevery\s+(\d+|an?|one|two|three|ten|fifteen|twenty|thirty)?\s*(minutes?|mins?|hours?|hrs?|day|weekday|morning|night|evening)\b/g,"")
+    .replace(/\b(?:at\s+)?\d{1,2}(?:[:.]\d{2})?\s*(?:a\.?\s?m\.?|p\.?\s?m\.?)/g,"").replace(/\bat\s+\d{1,2}(?:[:.]\d{2})?\b/g,"")
+    .replace(/\b(tomorrow|today|daily|everyday|weekdays)\b/g,"").replace(/\s+/g," ").trim();
+  if(!text)text=/wake/.test(s)?"Wake up!":/alarm/.test(s)?"Alarm":/timer/.test(s)?"Time is up!":"Reminder";
+  text=text[0].toUpperCase()+text.slice(1);
+  return {text,at,rep,every};
+}
+function addAlert(p){const a={id:uid(),text:p.text,at:p.at,rep:p.rep||"once",every:p.every||0,on:true,created:Date.now()};S.alerts.push(a);save();render();return a}
+function whenText(at){const d=new Date(at),t=ymd(d),hm=pad(d.getHours())+":"+pad(d.getMinutes());return (t===today()?"today":t===addDays(today(),1)?"tomorrow":"on "+fmtDay(t))+" at "+fmtTime(hm)}
+function untilText(at){let ms=at-Date.now();if(ms<=0)return"now";const mins=Math.round(ms/60000);if(mins<1)return"in less than a minute";if(mins<60)return`in ${mins} min`;const h=Math.floor(mins/60),mm=mins%60;if(h<24)return`in ${h}h${mm?" "+mm+"m":""}`;return`in ${Math.round(h/24)} day${h>=36?"s":""}`}
+function alertConfirm(a){return `Done! I will alert you "${a.text}" ${whenText(a.at)}`+(a.rep==="interval"?`, and then every ${a.every===60?"hour":a.every>60&&a.every%60===0?(a.every/60)+" hours":a.every===1?"minute":a.every+" minutes"}.`:a.rep==="daily"?", every day.":a.rep==="weekdays"?", on weekdays.":".")}
+function nextAt(a){
+  if(a.rep==="interval")return Date.now()+a.every*60000;
+  let n=a.at;do{n+=864e5}while(n<=Date.now()||(a.rep==="weekdays"&&[0,6].includes(new Date(n).getDay())));return n;
+}
+const alertQueue=[];let alertBeep=null;
+function fireAlert(a,late){
+  alertQueue.push({text:a.text,late,rep:a.rep});
+  try{if("Notification" in window&&Notification.permission==="granted")new Notification("AETHER alert",{body:a.text})}catch(e){}
+  if(document.getElementById("alertPop").hidden)showNextAlert();
+}
+function showNextAlert(){
+  const x=alertQueue[0],pop=document.getElementById("alertPop");if(!x){pop.hidden=true;clearInterval(alertBeep);alertBeep=null;return}
+  document.getElementById("alertBell").innerHTML=ic("bell");
+  document.getElementById("alertWhen").textContent=(x.late?"Missed alert · ":"Alert · ")+fmtTime(nowHM());
+  document.getElementById("alertTitle").textContent=x.text;
+  document.getElementById("alertMore").textContent=alertQueue.length>1?`${alertQueue.length-1} more alert${alertQueue.length>2?"s":""} waiting`:(x.rep!=="once"?REP_LABEL[x.rep]+" alert":"");
+  pop.hidden=false;document.getElementById("alertDone").focus();
+  clearInterval(alertBeep);let n=0;beep();alertBeep=setInterval(()=>{if(++n>12){clearInterval(alertBeep);return}beep()},2500);
+  speak("Alert. "+x.text,true);
+}
+document.getElementById("alertDone").onclick=()=>{alertQueue.shift();showNextAlert()};
+document.getElementById("alertSnooze").onclick=()=>{const x=alertQueue.shift();addAlert({text:x.text,at:Date.now()+5*60000,rep:"once"});toast("Snoozed","I will remind you again in 5 minutes.");showNextAlert()};
+function checkCustomAlerts(){
+  const now=Date.now();let ch=false;
+  for(const a of S.alerts){if(!a.on||!a.at||a.at>now)continue;fireAlert(a,now-a.at>3*60000);
+    if(a.rep==="once"){a.on=false;a.fired=now}else a.at=nextAt(a);ch=true}
+  document.querySelectorAll("[data-cd]").forEach(el=>el.textContent=untilText(+el.dataset.cd));
+  if(ch){save();if(view==="alerts"||view==="home")render()}
+}
+function vAlerts(){
+  const up=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at),past=S.alerts.filter(a=>!a.on).sort((a,b)=>(b.fired||b.at)-(a.fired||a.at)).slice(0,8);
+  return `<div class="grid g2">
+    ${card("New alert","Pop-up, sound and voice",`<form class="stack" data-form="alert">
+      <input class="inp" id="al-text" name="text" placeholder="What should I remind you? e.g. Take medicine" aria-label="Alert message">
+      <div class="quick">${[[5,"In 5 min"],[15,"In 15 min"],[30,"In 30 min"],[60,"In 1 hour"]].map(([n,l])=>`<button type="button" class="sug" data-act="quickAlert" data-n="${n}">${ic("clock","style='width:13px;height:13px;vertical-align:-2px'")} ${l}</button>`).join("")}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <input class="inp" type="date" id="al-date" name="date" value="${today()}" aria-label="Date">
+        <input class="inp" type="time" id="al-time" name="time" aria-label="Time">
+        <select class="inp" id="al-rep" name="rep" aria-label="Repeat"><option value="once">Once</option><option value="daily">Every day</option><option value="weekdays">Weekdays (Mon–Fri)</option><option value="interval">Every few minutes…</option></select>
+        <input class="inp" type="number" id="al-every" name="every" min="1" placeholder="Minutes" style="width:110px" aria-label="Repeat every how many minutes">
+      </div>
+      <button class="btn">${ic("bell")}Set alert</button>
+      <p class="note" style="margin:0">Or just tell Aether: "remind me in 20 minutes to check the oven", "set an alarm for 6 am", "remind me every hour to drink water".</p></form>`)}
+    ${card("Upcoming alerts",`${up.length} on`,`<div class="list">${up.map(a=>`<div class="row"><button class="switch" data-act="toggleAlert" data-id="${a.id}" aria-pressed="true" aria-label="Turn off ${esc(a.text)}"></button>
+      <div class="grow"><b>${esc(a.text)}</b><div class="meta">${whenText(a.at)} · <span class="rep-tag">${a.rep==="interval"?"every "+a.every+" min":REP_LABEL[a.rep]}</span></div></div>
+      <span class="cd" data-cd="${a.at}">${untilText(a.at)}</span>${del("delAlert",a.id)}</div>`).join("")||`<div class="empty"><b>No alerts yet</b>Set one on the left, or ask Aether.</div>`}</div>`,"",60)}
+    ${past.length?card("Past and turned off",`<button class="btn ghost sm" data-act="clearAlerts">Clear</button>`,`<div class="list">${past.map(a=>`<div class="row"><button class="switch" data-act="toggleAlert" data-id="${a.id}" aria-pressed="false" aria-label="Turn on ${esc(a.text)}"></button><div class="grow t" style="color:var(--muted)">${esc(a.text)}<div class="meta">${a.fired?"Rang "+whenText(a.fired):"Was "+whenText(a.at)}</div></div>${del("delAlert",a.id)}</div>`).join("")}</div>`,"span2",120):""}
+  </div>`;
 }
 
 /* ---------- sample data ---------- */
@@ -1115,6 +1302,8 @@ function exampleData(){
     {id:uid(),platform:"X",date:y,time:"12:00",text:"Productivity tip: work in 25 minute blocks.",status:"posted"}];
   const ali={id:uid(),name:"Ali (sample)",phone:"920000000001"},ammi={id:uid(),name:"Ammi (sample)",phone:"920000000002"};
   s.wa.contacts=[ali,ammi];
+  const nine=(()=>{let x=hmToday("21:00");if(x<=Date.now())x+=864e5;return x})();
+  s.alerts=[{id:uid(),text:"Drink a glass of water",at:Date.now()+45*60000,rep:"interval",every:60,on:true},{id:uid(),text:"Take your medicine",at:nine,rep:"daily",every:0,on:true}];
   s.wa.scheduled=[{id:uid(),to:ammi.id,date:t,time:"08:00",rep:"daily",text:"Good morning Ammi! Have a lovely day.",sent:false,notified:true},
     {id:uid(),to:ali.id,date:t,time:"17:00",rep:"once",text:"Hi Ali, are we still meeting at 6?",sent:false}];
   return s;
