@@ -111,6 +111,7 @@ Speaking works in Chrome and Edge. Every browser can use the type box.
 | `manifest.webmanifest` | App name, icons, colours and shortcuts for installing |
 | `sw.js` | Service worker: offline support and update detection |
 | `icons/` | App icons (192, 512, maskable, Apple touch, favicon) |
+| `netlify.toml` | Netlify hosting settings (publish folder, cache and security headers) |
 
 ## How to release an update
 
@@ -125,6 +126,23 @@ python -m http.server 8765
 ```
 
 Then open http://localhost:8765 in Chrome or Edge.
+
+## Host on Netlify
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Muneeb1214-UNSM/aether-ai)
+
+The repo is ready for Netlify: `netlify.toml` publishes the folder as-is (no build step) and sets cache and security headers.
+
+1. Sign up at [app.netlify.com](https://app.netlify.com) with your GitHub account.
+2. **Add new site → Import an existing project → GitHub → aether-ai**. Netlify reads `netlify.toml`, so leave the build settings as they are and click **Deploy**.
+3. **Site configuration → Change site name** to get a nicer link, for example `aether-ai.netlify.app`.
+4. Optional: **Domain management → Add a domain** to use your own domain. Netlify adds free HTTPS.
+
+Every push to `main` redeploys the site automatically. The in-app **Share** button always shares the link of the site it is opened on.
+
+## Share the app
+
+Tap **Share app** on Home (or *Share with friends* in the profile menu). On phones it opens the phone's share sheet; on computers it shows the link with a Copy button, WhatsApp, Facebook, X, LinkedIn and Telegram buttons, and a QR code.
 
 ## Put it on the Google Play Store (optional)
 

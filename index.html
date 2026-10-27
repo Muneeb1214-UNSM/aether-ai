@@ -374,6 +374,18 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .toast .go-link{background:rgba(127,127,127,.18);color:inherit;border-color:transparent}
 .go-link:hover{border-color:var(--a2)}
 
+/* share */
+.share-link{display:flex;gap:8px}
+.share-link .inp{flex:1;font-family:var(--f-mono);font-size:13px}
+.share-nets{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-top:14px}
+.share-net{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);text-decoration:none;color:var(--ink);font-size:12px;font-weight:700;transition:transform .15s,border-color .15s}
+.share-net:hover{transform:translateY(-2px);border-color:var(--nc)}
+.share-net span{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--nc);color:#fff;font-family:var(--f-display);font-size:16px}
+.qr-wrap{display:flex;align-items:center;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.qr-box{width:120px;height:120px;flex:none;background:#fff;border-radius:12px;padding:4px}
+.qr-box svg{width:100%;height:100%;display:block}
+@media (max-width:480px){.share-top{display:none}}
+
 /* assistant: bigger, clearer */
 .va .msg{font-size:15px;line-height:1.5}
 .va-state{font-size:15px;min-height:1.5em}
@@ -459,6 +471,7 @@ details{margin-bottom:10px}summary{cursor:pointer;font-weight:600;font-size:13px
     <div class="top-actions">
       <span class="chip" id="sync"><span class="dot"></span>Starting…</span>
       <button class="icon-btn" id="themeBtn" aria-label="Switch light or dark mode"></button>
+      <button class="icon-btn share-top" id="shareTop" data-act="shareApp" aria-label="Share AETHER AI" title="Share AETHER AI"></button>
       <button class="icon-btn bell-btn" id="bellBtn" data-go="alerts" aria-label="Notifications" title="Notifications"></button>
       <button class="avatar" id="avatarBtn" aria-label="Your profile" aria-haspopup="true" aria-expanded="false">A</button>
       <div class="menu" id="menu" hidden></div>
@@ -650,7 +663,7 @@ document.getElementById("obForm").onsubmit=e=>{
 };
 const menu=document.getElementById("menu"),avatarBtn=document.getElementById("avatarBtn");
 avatarBtn.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;avatarBtn.setAttribute("aria-expanded",open);
-  if(open){menu.innerHTML=`<div class="who"><b></b><span></span></div><button data-act="editProfile">${ic("user")}Edit profile</button><button data-act="openSettings">${ic("spark")}AI settings</button>${!isApp()?`<button data-act="installApp">${ic("download")}Install app</button>`:""}<button data-act="signOut">${ic("out")}Sign out</button><div class="meta" style="padding:8px 12px 4px">AETHER AI · version ${APP_VERSION}</div>`;
+  if(open){menu.innerHTML=`<div class="who"><b></b><span></span></div><button data-act="editProfile">${ic("user")}Edit profile</button><button data-act="openSettings">${ic("spark")}AI settings</button>${!isApp()?`<button data-act="installApp">${ic("download")}Install app</button>`:""}<button data-act="shareApp">${ic("share")}Share with friends</button><button data-act="signOut">${ic("out")}Sign out</button><div class="meta" style="padding:8px 12px 4px">AETHER AI · version ${APP_VERSION}</div>`;
     menu.querySelector(".who b").textContent=(S.profile&&S.profile.name)||"Guest";menu.querySelector(".who span").textContent=(S.profile&&S.profile.email)||""}};
 document.addEventListener("click",e=>{if(!menu.hidden&&!e.target.closest("#menu,#avatarBtn"))menu.hidden=true},true);
 
@@ -745,6 +758,7 @@ function initTheme(){try{const t=localStorage.getItem("aether-theme");if(t)docum
 function paintTheme(){document.getElementById("themeBtn").innerHTML=ic(curTheme()==="dark"?"sun":"moon")}
 document.getElementById("themeBtn").onclick=()=>{const t=curTheme()==="dark"?"light":"dark";document.documentElement.dataset.theme=t;try{localStorage.setItem("aether-theme",t)}catch(e){}paintTheme()};
 document.getElementById("bellBtn").innerHTML=ic("bell")+'<span class="badge" id="bellBadge" hidden>0</span>';
+document.getElementById("shareTop").innerHTML=ic("share");
 
 /* ---------- tabs ---------- */
 function buildTabs(){
@@ -818,7 +832,7 @@ function vHome(){
     <h1 style="margin-top:6px">${greet}${firstName()?", "+esc(firstName()):""}!</h1>
     <p>${tt.length?`You have <b>${tt.length}</b> tasks today and <b>${done}</b> are done.`:"You have no tasks today."} ${next?`Next: <b>${esc(next.title)}</b>${next.time?` at ${fmtTime(next.time)}`:""}.`:tt.length?"Everything is done. Great work!":""}</p>
     ${(()=>{const na=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at)[0];return na?`<p style="margin-top:6px">${ic("bell","style='width:15px;height:15px;vertical-align:-2px'")} Next alert: <b>${esc(na.text)}</b> ${whenText(na.at)} (<span data-cd="${na.at}">${untilText(na.at)}</span>)</p>`:""})()}
-    <div class="hero-acts"><button class="btn-hero" data-act="openVoice">${ic("mic")}Talk to Aether</button><button class="btn-hero alt" data-go="schedule">${ic("plus")}Add a task</button></div>
+    <div class="hero-acts"><button class="btn-hero" data-act="openVoice">${ic("mic")}Talk to Aether</button><button class="btn-hero alt" data-go="schedule">${ic("plus")}Add a task</button><button class="btn-hero alt" data-act="shareApp">${ic("share")}Share app</button></div>
   </div>${ring(dayP/100,128,12,"#fff",dayP+"%","of your day")}</div></section>
   <div class="grid g4" style="margin-top:16px">
     ${kpiCard("Tasks",done,"/"+tt.length,tt.length?done/tt.length:0,"var(--c-work)",tt.length-done?`${tt.length-done} left`:"All clear",60)}
@@ -1266,6 +1280,8 @@ document.addEventListener("click",e=>{
     case"clearExample":{const keep={profile:S.profile,chats:S.chats,comm:S.comm,nset:S.nset};S=blank();Object.assign(S,keep);animate=true;break}
     case"mTalk":{const st=ms(id);st.talk=!st.talk;paintMentorBar(id);if(st.talk){st.silent=0;speak(`I'm listening${firstName()?", "+firstName():""}. Go ahead.`,true).then(()=>{if(st.talk)mentorListen(id)})}else{try{st.rec&&st.rec.stop();speechSynthesis.cancel()}catch(_){}}return}
     case"installApp":menu.hidden=true;installApp();return;
+    case"shareApp":menu.hidden=true;shareApp();return;
+    case"copyLink":copyLink(b);return;
     case"hideInstall":try{localStorage.setItem("aether-install-hide","1")}catch(_){}render();return;
     case"mVoice":{const st=ms(id);st.voice=!st.voice;paintMentorBar(id);if(!st.voice)try{speechSynthesis.cancel()}catch(_){}return}
     case"mClear":S.chats[id]=[];save();paintLog(id);return;
@@ -1757,7 +1773,42 @@ function exampleData(){
   return s;
 }
 /* ---------- app: install + updates ---------- */
-const APP_VERSION="2.1.0";
+const APP_VERSION="2.2.0";
+
+/* ---------- share the app ---------- */
+const DEFAULT_URL="https://muneeb1214-unsm.github.io/aether-ai/";
+// The public link: the site you are on (GitHub Pages, Netlify or your own domain), never a private preview.
+function appUrl(){try{if(location.protocol==="https:"&&!/claude|anthropic|localhost|127\.0\.0\.1/.test(location.hostname))return location.origin+location.pathname.replace(/index\.html$/,"")}catch(e){}return DEFAULT_URL}
+const SHARE_TEXT="Try AETHER AI, a free personal assistant app: tasks, alerts, health, study, a communication coach and a voice assistant.";
+async function shareApp(){
+  const url=appUrl();
+  if(navigator.share&&/android|iphone|ipad|mobile/i.test(navigator.userAgent)){try{await navigator.share({title:"AETHER AI",text:SHARE_TEXT,url});return}catch(e){if(e&&e.name==="AbortError")return}}
+  openShare(url);
+}
+function openShare(url){
+  const m=document.getElementById("modal"),u=encodeURIComponent(url),t=encodeURIComponent(SHARE_TEXT);
+  const nets=[["WhatsApp","#16a34a",`https://wa.me/?text=${t}%20${u}`],["Facebook","#1877f2",`https://www.facebook.com/sharer/sharer.php?u=${u}`],["X","#111827",`https://twitter.com/intent/tweet?text=${t}&url=${u}`],["LinkedIn","#0a66c2",`https://www.linkedin.com/sharing/share-offsite/?url=${u}`],["Telegram","#229ed9",`https://t.me/share/url?url=${u}&text=${t}`]];
+  m.hidden=false;
+  m.innerHTML=`<div class="modal-card" role="dialog" aria-modal="true" aria-label="Share AETHER AI"><div class="card-h"><h2>Share AETHER AI</h2><button class="icon-btn" data-act="closeModal" aria-label="Close">${ic("x")}</button></div>
+    <p class="meta" style="margin:0 0 14px">Send this link to friends. Each person gets their own private dashboard on their own phone.</p>
+    <div class="share-link"><input class="inp" id="shareUrl" value="${esc(url)}" readonly aria-label="App link"><button class="btn" data-act="copyLink">${ic("copy")}Copy</button></div>
+    <div class="share-nets">${nets.map(([n,c,h])=>`<a class="share-net" href="${esc(h)}" target="_blank" rel="noopener" style="--nc:${c}"><span>${n[0]}</span>${n}</a>`).join("")}</div>
+    <div class="qr-wrap"><div id="qrBox" class="qr-box" aria-label="QR code for the app link"></div><p class="meta">Scan with a phone camera to open the app.</p></div></div>`;
+  drawQR(url);
+}
+async function copyLink(btn){
+  const inp=document.getElementById("shareUrl");
+  try{await navigator.clipboard.writeText(inp.value);btn.innerHTML=ic("copy")+"Copied!";toast("Link copied","Paste it anywhere to share AETHER AI.")}
+  catch(e){inp.select();toast("Select and copy","The link is selected. Press Ctrl+C or long-press to copy.")}
+}
+let qrLib=null;
+function drawQR(url){
+  const box=document.getElementById("qrBox");if(!box)return;
+  const paint=()=>{try{const q=window.qrcode(0,"M");q.addData(url);q.make();box.innerHTML=q.createSvgTag({cellSize:5,margin:3,scalable:true})}catch(e){box.closest(".qr-wrap").hidden=true}};
+  if(window.qrcode)return paint();
+  if(!qrLib)qrLib=new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js";s.onload=res;s.onerror=rej;document.head.appendChild(s)});
+  qrLib.then(paint,()=>{const w=box.closest(".qr-wrap");if(w)w.hidden=true});
+}
 let installEvt=null;
 const isApp=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
