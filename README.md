@@ -59,7 +59,11 @@ Aether prepares messages and reminds you on time. When you tap **Send now**, Wha
 
 ## Voice assistant
 
-Tap the round button at the bottom right and speak, or type. Aether answers out loud.
+Tap the round button at the bottom right and just talk; it starts listening right away. You can also type. Aether answers out loud.
+
+Speak naturally: "Hey Aether, can you add a task to go to the gym at 6 pm", "I need to call mom tomorrow", "dentist appointment tomorrow morning", "I'm going to study physics at 8 tonight", "kal 5 baje doctor ke paas jana hai". If Aether is not sure, it asks "Should I add this to your tasks?" with Yes / Set an alert / No buttons. After adding a task without a time, just say "at 5 pm" to set it.
+
+**Voice settings** (gear icon in the assistant): pick a voice, change the speed, and choose your accent (Pakistani / Indian, American or British English) so Aether understands you better.
 
 **Conversation mode:** tap **Start conversation** and just talk. Aether listens, answers out loud, and listens again, so you can talk back and forth without tapping. Say "stop" or "bye" to end it.
 

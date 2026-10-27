@@ -374,6 +374,14 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .toast .go-link{background:rgba(127,127,127,.18);color:inherit;border-color:transparent}
 .go-link:hover{border-color:var(--a2)}
 
+/* assistant: bigger, clearer */
+.va .msg{font-size:15px;line-height:1.5}
+.va-state{font-size:15px;min-height:1.5em}
+.qr{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.qr .sug{background:var(--surface);font-size:13px}
+.qr .sug:disabled{opacity:.5;cursor:default}
+.va-settings{padding:14px 16px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+
 /* mentor chatbots */
 .mentor{display:flex;flex-direction:column;border-top:3px solid var(--mc)}
 .mentor-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -463,7 +471,8 @@ details{margin-bottom:10px}summary{cursor:pointer;font-weight:600;font-size:13px
 <span class="fab-label" id="fabLabel">Talk to Aether</span>
 <button class="fab" id="fab" aria-label="Open voice assistant"></button>
 <section class="va" id="va" hidden aria-label="Voice assistant">
-  <div class="va-head"><b>Aether Assistant</b><div style="display:flex;gap:6px"><button class="icon-btn" id="muteBtn" aria-label="Turn voice replies on or off"></button><button class="icon-btn" id="vaClose" aria-label="Close assistant"></button></div></div>
+  <div class="va-head"><b>Aether Assistant</b><div style="display:flex;gap:6px"><button class="icon-btn" id="vaSetBtn" aria-label="Voice settings" title="Voice settings"></button><button class="icon-btn" id="muteBtn" aria-label="Turn voice replies on or off"></button><button class="icon-btn" id="vaClose" aria-label="Close assistant"></button></div></div>
+  <div class="va-settings stack" id="vaSettings" hidden></div>
   <div class="va-stage" id="vaStage">
     <button class="orb" id="orb" aria-label="Tap and speak"></button>
     <div class="va-state" id="vaState">Tap the circle and speak</div>
@@ -1060,7 +1069,7 @@ function mentorListen(id){
   const st=ms(id);if(!SR){toast("Voice is not supported here","Open AETHER in Chrome or Edge to talk. You can still type.");st.talk=false;paintMentorBar(id);return}
   if(st.listening){try{st.rec.stop()}catch(e){}return}
   if(listening)stopListen();try{speechSynthesis.cancel()}catch(e){}
-  const rec=new SR();st.rec=rec;rec.lang="en-US";rec.interimResults=true;let final="",blocked=false;
+  const rec=new SR();st.rec=rec;rec.lang=vset.lang||"en-US";rec.interimResults=true;let final="",blocked=false;
   rec.onresult=e=>{let t="";for(const r of e.results){t+=r[0].transcript;if(r.isFinal)final=t}const inp=document.getElementById("min-"+id);if(inp)inp.value=t};
   rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){blocked=true;st.talk=false;toast("Microphone blocked","Allow the microphone in your browser to talk.")}};
   rec.onend=()=>{st.listening=false;paintMentorBar(id);const inp=document.getElementById("min-"+id);
@@ -1102,7 +1111,7 @@ function analyzeSpeech(text,secs){
 function startPractice(){
   if(!SR){toast("Voice is not supported here","Open AETHER in Chrome or Edge to practise speaking.");return}
   if(listening)stopListen();try{speechSynthesis.cancel()}catch(e){}
-  const rec=new SR();rec.lang="en-US";rec.continuous=true;rec.interimResults=true;practice={on:true,start:Date.now(),text:"",rec,result:null,timer:null};
+  const rec=new SR();rec.lang=vset.lang||"en-US";rec.continuous=true;rec.interimResults=true;practice={on:true,start:Date.now(),text:"",rec,result:null,timer:null};
   rec.onresult=e=>{let t="";for(const r of e.results)t+=r[0].transcript+" ";practice.text=t.trim();const el=document.getElementById("prText");if(el)el.textContent=practice.text||"…"};
   rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){toast("Microphone blocked","Allow the microphone in your browser to practise.");practice.on=false;render()}};
   rec.onend=()=>{if(practice.on){try{rec.start()}catch(e){finishPractice()}}};
@@ -1355,30 +1364,66 @@ try{muted=localStorage.getItem("aether-mute")==="1"}catch(e){}
 document.getElementById("fab").innerHTML=ic("mic");orb.innerHTML=ic("mic");document.getElementById("vaClose").innerHTML=ic("x");
 const paintMute=()=>document.getElementById("muteBtn").innerHTML=ic(muted?"mute":"vol");paintMute();
 document.getElementById("muteBtn").onclick=()=>{muted=!muted;try{localStorage.setItem("aether-mute",muted?"1":"0")}catch(e){}paintMute();if(muted)try{speechSynthesis.cancel()}catch(e){}};
-const SUGS=["Remind me in 1 minute to stretch","What is my plan today?","Set an alarm for 6 am","Add task gym at 6 pm","I drank water","What alerts do I have?","Start focus timer","How am I doing?","Help"];
+const SUGS=["Add task gym at 6 pm","I need to call mom tomorrow","Remind me in 10 minutes to drink water","What's my plan today?","I drank water","What's happening?","Help"];
 document.getElementById("sugs").innerHTML=SUGS.map(s=>`<button class="sug" type="button">${s}</button>`).join("");
 document.getElementById("sugs").onclick=e=>{const s=e.target.closest(".sug");if(s)handle(s.textContent)};
-document.getElementById("fab").onclick=openVA;
+vaLog.addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(b){b.parentElement.querySelectorAll("[data-say]").forEach(x=>x.disabled=true);handle(b.dataset.say)}});
+document.getElementById("fab").onclick=()=>{openVA();if(SR)startListen()};
 document.getElementById("vaClose").onclick=()=>{va.hidden=true;if(convOn)setConv(false);stopListen();document.getElementById("fab").hidden=false;document.getElementById("fabLabel").hidden=false};
 let greeted=false;
 function openVA(){va.hidden=false;document.getElementById("fab").hidden=true;document.getElementById("fabLabel").hidden=true;
-  if(!greeted){greeted=true;const hr=new Date().getHours();addMsg("ai",(hr<12?"Good morning":hr<17?"Good afternoon":"Good evening")+"! I am Aether. Tap the circle and talk to me, or type below. Say \"help\" to see what I can do.")}
-  document.getElementById("vaText").focus({preventScroll:true})}
+  if(!greeted){greeted=true;const hr=new Date().getHours();addMsg("ai",(hr<12?"Good morning":hr<17?"Good afternoon":"Good evening")+(firstName()?", "+firstName():"")+"! Just tell me what you need, like \"add task gym at 6 pm\" or \"remind me in 10 minutes to drink water\".")}
+  if(!SR)document.getElementById("vaText").focus({preventScroll:true})}
+/* links: [{href,label}] open a page; [{say,label}] are quick-reply buttons */
 function addMsg(who,text,links){const m=document.createElement("div");m.className="msg "+who;m.textContent=text;
-  (links||[]).forEach(l=>{const w=document.createElement("div");w.innerHTML=waA(l.href,l.label);m.appendChild(w)});
+  const btns=(links||[]).filter(l=>l.say),hrefs=(links||[]).filter(l=>l.href);
+  hrefs.forEach(l=>{const w=document.createElement("div");w.innerHTML=goA(l);m.appendChild(w)});
+  if(btns.length){const w=document.createElement("div");w.className="qr";w.innerHTML=btns.map(b=>`<button class="sug" type="button" data-say="${esc(b.say)}">${esc(b.label)}</button>`).join("");m.appendChild(w)}
   vaLog.appendChild(m);vaLog.scrollTop=vaLog.scrollHeight;return m}
+
+/* ---------- voice: clear, natural speech ---------- */
+let voices=[];const vset={name:"",rate:1,lang:"en-IN"};
+try{Object.assign(vset,JSON.parse(localStorage.getItem("aether-voice")||"{}"))}catch(e){}
+const saveVset=()=>{try{localStorage.setItem("aether-voice",JSON.stringify(vset))}catch(e){}};
+function loadVoices(){try{voices=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang))}catch(e){voices=[]}}
+loadVoices();try{speechSynthesis.addEventListener("voiceschanged",()=>{loadVoices();paintVoiceSettings()})}catch(e){}
+function voiceScore(v){const n=v.name.toLowerCase();let s=0;
+  if(/natural|neural/.test(n))s+=60;if(/online/.test(n))s+=20;if(/google/.test(n))s+=40;
+  if(/aria|jenny|ava|emma|sonia|libby|neerja|samantha|serena|karen|moira|female/.test(n))s+=25;
+  if(/en[-_]us/i.test(v.lang))s+=8;else if(/en[-_](gb|in)/i.test(v.lang))s+=6;
+  if(/zira|david|mark|hazel|desktop/.test(n))s-=10;return s}
+function bestVoice(){if(!voices.length)loadVoices();if(vset.name){const v=voices.find(v=>v.name===vset.name);if(v)return v}return voices.slice().sort((a,b)=>voiceScore(b)-voiceScore(a))[0]||null}
+const speakable=t=>String(t).replace(/https?:\S+/g,"").replace(/[•*_#>"“”]/g,"").replace(/\n\s*-\s*/g,". ").replace(/\n+/g,". ").replace(/\.\s*\./g,".").replace(/\s+/g," ").trim();
+function chunks(t){const parts=t.match(/[^.!?]+[.!?]*/g)||[t];const out=[];let cur="";for(const p of parts){if((cur+p).length>170&&cur){out.push(cur.trim());cur=p}else cur+=p}if(cur.trim())out.push(cur.trim());return out}
 function speak(text,force){
   return new Promise(res=>{
     if(muted&&!convOn&&!force)return res();
     try{
-      speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=1;
-      const v=speechSynthesis.getVoices().find(v=>/en(-|_)(US|GB)/.test(v.lang)&&/female|samantha|zira|aria|jenny|google us/i.test(v.name));if(v)u.voice=v;
-      let done=false;const fin=()=>{if(done)return;done=true;orb.classList.remove("speaking");res()};
-      u.onend=fin;u.onerror=fin;setTimeout(fin,Math.min(30000,1500+text.length*90));
-      orb.classList.add("speaking");speechSynthesis.speak(u);
+      speechSynthesis.cancel();const v=bestVoice(),list=chunks(speakable(text));if(!list.length)return res();
+      let done=false;const guard=setTimeout(()=>fin(),Math.min(90000,3000+text.length*110/(vset.rate||1)));
+      function fin(){if(done)return;done=true;clearTimeout(guard);clearInterval(keep);orb.classList.remove("speaking");if(!listening)vaState.textContent=idleMsg();res()}
+      const keep=setInterval(()=>{try{if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){}},4000);
+      list.forEach((c,i)=>{const u=new SpeechSynthesisUtterance(c);if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";u.rate=vset.rate||1;u.pitch=1;u.volume=1;
+        if(i===list.length-1){u.onend=fin;u.onerror=fin}speechSynthesis.speak(u)});
+      orb.classList.add("speaking");if(!listening)vaState.textContent="Speaking… tap the circle to talk";
     }catch(e){res()}
   });
 }
+function paintVoiceSettings(){
+  const box=document.getElementById("vaSettings");if(!box||box.hidden)return;
+  const sorted=voices.slice().sort((a,b)=>voiceScore(b)-voiceScore(a));
+  box.innerHTML=`<label class="field">Voice<select class="inp" id="vs-voice"><option value="">Best voice (automatic)</option>${sorted.map(v=>`<option value="${esc(v.name)}" ${v.name===vset.name?"selected":""}>${esc(v.name.replace(/Microsoft |Google /,""))} (${esc(v.lang)})</option>`).join("")}</select></label>
+    <label class="field">Speed <span id="vs-rv">${(+vset.rate).toFixed(1)}x</span><input type="range" id="vs-rate" min="0.7" max="1.4" step="0.1" value="${vset.rate}"></label>
+    <label class="field">I speak with<select class="inp" id="vs-lang"><option value="en-IN" ${vset.lang==="en-IN"?"selected":""}>Pakistani / Indian English accent</option><option value="en-US" ${vset.lang==="en-US"?"selected":""}>American English</option><option value="en-GB" ${vset.lang==="en-GB"?"selected":""}>British English</option></select></label>
+    <button class="btn sm" type="button" id="vs-test">${ic("vol")}Test voice</button>
+    <p class="note" style="margin:0">Voice too quiet? Turn up your phone or computer volume. Microsoft Edge has the most natural voices.</p>`;
+  document.getElementById("vs-voice").onchange=e=>{vset.name=e.target.value;saveVset()};
+  document.getElementById("vs-rate").oninput=e=>{vset.rate=+e.target.value;document.getElementById("vs-rv").textContent=vset.rate.toFixed(1)+"x";saveVset()};
+  document.getElementById("vs-lang").onchange=e=>{vset.lang=e.target.value;saveVset()};
+  document.getElementById("vs-test").onclick=()=>speak(`Hi${firstName()?" "+firstName():""}! This is how I sound. I will help you plan your day.`,true);
+}
+document.getElementById("vaSetBtn").innerHTML=ic("gear");
+document.getElementById("vaSetBtn").onclick=()=>{const box=document.getElementById("vaSettings");box.hidden=!box.hidden;paintVoiceSettings()};
 /* one reply from Aether: show it, say it, then keep listening in conversation mode */
 function reply(text,links,keepTalking=true){
   addMsg("ai",text,links);
@@ -1404,7 +1449,7 @@ function startListen(){
   if(!SR){setListen(false,"Voice is not supported here");addMsg("ai","Your browser cannot listen here. Open AETHER in Chrome or Edge to talk, or type your message below.");return}
   if(listening)return;
   try{speechSynthesis.cancel()}catch(e){}
-  rec=new SR();rec.lang="en-US";rec.interimResults=true;rec.maxAlternatives=1;let final="",blocked=false;
+  rec=new SR();rec.lang=vset.lang||"en-US";rec.interimResults=true;rec.maxAlternatives=1;let final="",blocked=false;
   rec.onresult=e=>{let txt="";for(const r of e.results){txt+=r[0].transcript;if(r.isFinal)final=txt}vaState.textContent="“"+txt+"”"};
   rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){blocked=true;setConv(false);addMsg("ai","I can't use the microphone here. Allow the microphone in your browser, or type your message below.")}
     else if(e.error==="no-speech"&&!convOn)addMsg("ai","I didn't hear anything. Tap the circle and try again.")};
@@ -1433,8 +1478,73 @@ function summary(){
   const tt=todayTasks(),done=tt.filter(k=>k.done).length,h=H(),sm=studyMins(today()),hb=S.habits.filter(x=>x.days&&x.days[today()]).length;
   return `Today you finished ${done} of ${tt.length} tasks. You drank ${h.water||0} of ${S.goals.water} glasses of water, studied ${sm} minutes, and did ${hb} of ${S.habits.length} habits.`+(done===tt.length&&tt.length?" Amazing work!":"");
 }
+/* ---------- understanding everyday sentences ---------- */
+// Strips wake words and polite openers so "hey aether, can you please add..." reads as "add...".
+function cleanCmd(raw){
+  let s=String(raw).toLowerCase().replace(/[“”"]/g,"").replace(/[?!,;]/g," ").replace(/\.(?=\s|$)/g," ").replace(/\s+/g," ").trim();
+  s=s.replace(/^(hey|hi|hello|ok|okay)\s+(aether|ether|either|ethan|jarvis)\b\s*/,"").replace(/^(aether|ether|jarvis)\b\s*/,"");
+  for(let i=0;i<4;i++)s=s.replace(/^(please|kindly|can you|could you|would you|will you|i want you to|i need you to|i would like you to|i'd like you to|go ahead and|just|also|and|now|aether)\s+/,"");
+  return s.replace(/\s+(please|for me|thanks|thank you|now)$/,"").trim();
+}
+const WEEKDAYS=["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+// Finds a date and time inside a sentence and returns what is left as the title.
+function parseWhen(text){
+  let s=" "+text+" ",date="",time="";const t=today();const cut=re=>{s=s.replace(re," ")};let m;
+  if(/\bday after tomorrow\b|\bparson\b/.test(s)){date=addDays(t,2);cut(/\bday after tomorrow\b|\bparson\b/)}
+  else if(/\b(tomorrow|tmrw|kal)\b/.test(s)){date=addDays(t,1);cut(/\b(tomorrow|tmrw|kal)\b/)}
+  const tonight=/\btonight\b/.test(s);
+  if(/\b(today|tonight|aaj)\b/.test(s)&&!date){date=t;if(tonight&&!/\d/.test(s))time="20:00";cut(/\b(today|aaj)\b/);cut(/\btonight\b/)}
+  if(m=s.match(/\b(?:on\s+|next\s+|this\s+)?(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/)){
+    const want=WEEKDAYS.indexOf(m[1]);let d=new Date();let add=(want-d.getDay()+7)%7;if(/next\s/.test(m[0])&&add===0)add=7;date=addDays(t,add);cut(m[0])}
+  if(m=s.match(/\bin\s+(\d+|a|an|one|two|three)\s+days?\b/)){date=addDays(t,+m[1]||NUMW[m[1]]||1);cut(m[0])}
+  if(m=s.match(/\bin\s+(half an?|\d+|an?|one|two|three|five|ten|fifteen|twenty|thirty|forty)\s*(minutes?|mins?|hours?|hrs?)\b/)){
+    const n=m[1].startsWith("half")?.5:(+m[1]||NUMW[m[1]]||1);const d=new Date(Date.now()+n*(/^h/.test(m[2])?60:1)*60000);
+    time=pad(d.getHours())+":"+pad(d.getMinutes());date=ymd(d);cut(m[0])}
+  if(!time&&(m=s.match(/\b(?:at\s+|by\s+|around\s+)?(noon|midday|midnight)\b/))){time=m[1]==="midnight"?"23:59":"12:00";cut(m[0])}
+  if(!time&&(m=s.match(/\b(?:at\s+|by\s+|around\s+|for\s+)?(\d{1,2})(?:[:.](\d{2})|\s(\d{2})(?=\s*(?:a\.?\s?m|p\.?\s?m)))?(?:\s*(a\.?\s?m\.?|p\.?\s?m\.?|o'?clock|baje))?(?:\s+(?:in the\s+|at\s+)?(morning|afternoon|evening|night|subah|shaam|sham|raat))?\b/))&&(m[4]||/\b(at|by|around)\s+\d/.test(m[0])||m[5])){
+    let h=+m[1],mi=+(m[2]||m[3]||0);const ap=(m[4]||"").replace(/[.\s']/g,"");const part=m[5]||"";
+    if(ap==="pm"&&h<12)h+=12;else if(ap==="am"&&h===12)h=0;
+    else if(!/^(am|pm)$/.test(ap)){
+      if((tonight||/afternoon|evening|night|shaam|sham|raat/.test(part))&&h<12)h+=12;
+      else if(!/morning|subah/.test(part)){if(h>=1&&h<=6)h+=12;else if(h>=7&&h<=11&&pad(h)+":"+pad(mi)<=nowHM()&&pad(h+12)+":"+pad(mi)>nowHM())h+=12}}
+    if(h<24&&mi<60){time=pad(h)+":"+pad(mi);cut(m[0])}}
+  if(!time&&(m=s.match(/\b(?:in the\s+)?(morning|subah|afternoon|evening|shaam|night|raat)\b/))){time={morning:"09:00",subah:"09:00",afternoon:"14:00",evening:"18:00",shaam:"18:00",night:"21:00",raat:"21:00"}[m[1]];cut(m[0])}
+  if(time&&!date){date=t;if(time<=nowHM()&&!/\bin\s+\d/.test(text))date=addDays(t,1)}
+  let rest=s.replace(/\b(to|on|in|into)\s+(my|the)\s+(to\s?do\s+list|todo list|list|tasks?|schedule|calendar|planner)\b/g," ").replace(/\s+/g," ").trim();
+  rest=rest.replace(/^(to|that|for|about|called|named|:)\s+/,"").replace(/\s+(at|on|by|for|in|and)$/,"").trim();
+  return {date,time,rest};
+}
+const cap=t=>t?t[0].toUpperCase()+t.slice(1):t;
+let lastRaw="";
+// Brings back capital letters the user typed or the speech engine gave (names like Ali).
+function restoreCase(t){const orig={};(lastRaw.match(/[\w']+/g)||[]).forEach(w=>{if(/[A-Z]/.test(w.slice(1))||/^[A-Z]/.test(w))orig[w.toLowerCase()]=w});
+  return t.split(" ").map((w,i)=>orig[w]&&!(i===0&&/^(i|a)$/.test(w))?orig[w]:w).join(" ")}
+const TASK_RE=/^(?:add|create|make|new|put|schedule|plan|save|write down|note down|note|set up|book)\s+(?:(?:a|an|new|my|one|another)\s+)*(?:task|todo|to do|to-do|item)?\s*(?:called|named|to|for|that says|saying|:)?\s*(.*)$/;
+const NEED_RE=/^(?:i have to|i need to|i must|i should|i got to|i gotta|i've got to|i have got to|don't let me forget to|do not let me forget to|remember to|i want to|i will|i'll|i am going to|i'm going to|im going to|i plan to|my task is to|mujhe|muje)\s+(.+)$/;
+const URDU_TASK=/\b(karna hai|karni hai|jana hai|jaana hai|lena hai|dena hai|parhna hai|padhna hai|add karo|likh lo|yaad dila(?:na|o)?)\b/;
+let pendingConfirm=null,pendingTaskTime=null;
+function addTaskFromText(body,fromNeed){
+  const w=parseWhen(body);let title=w.rest.replace(URDU_TASK,"").replace(/\s+/g," ").trim();
+  if(!title)return null;title=cap(restoreCase(title));const date=w.date||today();
+  addTask(title,date,w.time,guessCat(title));save();render();
+  const id=S.tasks[S.tasks.length-1].id;pendingTaskTime=w.time?null:id;
+  return `Done! I added "${title}" ${date===today()?"for today":date===addDays(today(),1)?"for tomorrow":"for "+fmtDay(date)}${w.time?" at "+fmtTime(w.time)+". I will remind you before it starts.":". Want a time? Just say, for example, at 5 pm."}`;
+}
+const isQuestion=s=>/^(what|why|how|who|when|where|which|is|are|am|do|does|did|can|could|should|would|will|tell me|explain)\b/.test(s);
+
 function handle(raw){
-  addMsg("me",raw);const s=raw.toLowerCase().replace(/[?!]/g,"").trim();let r="";
+  addMsg("me",raw);lastRaw=raw;const s=cleanCmd(raw);let r="";
+  if(!s){reply("I'm listening. What can I do for you?");return}
+  if(/^(alert|alarm|reminder|set alert|set an alert|set alarm|set an alarm|set a reminder|remind me)$/.test(s)){reply('Sure. Tell me what and when, like: remind me in 10 minutes to drink water.');return}
+  if(pendingConfirm&&pendingConfirm.ask){pendingConfirm=null;if(!/^(no|cancel|never mind|nothing)\b/.test(s)){reply(addTaskFromText(s)||"Okay.");return}}
+  if(pendingConfirm){const pc=pendingConfirm;pendingConfirm=null;
+    if(/^(yes|yeah|yep|yup|sure|ok|okay|haan|han|ha|ji|jee|add it|do it|please do|correct|right|of course|go ahead)\b/.test(s)){reply(addTaskFromText(pc.title)||"Okay.");return}
+    if(/^(alert|set an alert|alarm|remind me)$/.test(s)){pendingAlert=pc.title;reply(`Sure. When should I remind you to ${pc.title.toLowerCase()}? For example, say "in 10 minutes" or "at 5 pm".`);return}
+    if(/^(no|nope|nah|nahi|nahin|cancel|don't|dont|never mind)\b/.test(s)){reply("Okay, I won't add it. What else can I do?");return}}
+  if(pendingTaskTime&&s.split(" ").length<=7){const w=parseWhen(s);const k=find(S.tasks,pendingTaskTime);
+    if(k&&(w.time||w.date)&&!w.rest.replace(/\b(at|on|for|it|make it|set it|the time|time)\b/g,"").trim()){pendingTaskTime=null;if(w.time)k.time=w.time;if(w.date)k.date=w.date;k.notified=false;k.pre=false;save();render();
+      reply(`Got it. "${k.title}" is now ${fmtDay(k.date).toLowerCase()}${k.time?" at "+fmtTime(k.time):""}.`);return}}
+  pendingTaskTime=null;
   const tab=SECTIONS.find(x=>new RegExp("\\b(open|show|go to)\\b.*\\b"+x.label.toLowerCase()).test(s)||(x.id==="social"&&/\b(open|show)\b.*\bsocial/.test(s)));
   let m;
   const wm=raw.match(/^(?:please\s+)?(?:send\s+)?(?:a\s+)?(?:whatsapp|message|text|msg)\s+(?:message\s+)?(?:to\s+)?([a-z]+)\s*(?:saying|that|say|:)?\s*(.*)$/i);
@@ -1442,7 +1552,8 @@ function handle(raw){
   if(/^(stop|cancel|never mind|nevermind)$/.test(s)){pendingAlert=null;reply("Okay, cancelled.");return}
   if(pendingAlert){const p=parseAlert("remind me "+s+" to "+pendingAlert);pendingAlert=null;
     if(p.at){const a=addAlert(p);reply(alertConfirm(a));return}}
-  if(/^(help|what can you do)/.test(s)){r="You can say: add task gym at 6 pm. Remind me in 10 minutes to call mom. Set an alarm for 6 am. Remind me every hour to drink water. What alerts do I have? What is my plan today? I drank water. Start focus timer. Message Ali saying I am on my way. How am I doing?"+(aiMode()==="basic"?" Turn on smart AI in AI settings to ask me anything.":" You can also ask me anything!")}
+  if(/^(help|what can you do|examples?|more examples)\b/.test(s)){reply("Just talk normally. For example: I need to call mom tomorrow at 5. Remind me in 10 minutes to drink water. What's my plan today? I drank 2 glasses of water. Mark gym done. Start focus timer."+(aiMode()==="basic"?" To ask me any question, turn on smart AI in AI settings.":" You can also ask me anything!"),
+    [{say:"I need to call mom tomorrow at 5 pm",label:"Task for tomorrow"},{say:"remind me in 10 minutes to drink water",label:"Alert in 10 min"},{say:"set an alarm for 6 am",label:"Alarm 6 am"},{say:"what's my plan today",label:"My plan today"},{say:"I drank water",label:"I drank water"},{say:"what's happening",label:"What's happening?"}]);return}
   else if(/^(?:please\s+)?(?:remind me|set (?:an? |my )?(?:alert|alarm|reminder|timer)|alert me|wake me|create (?:an? )?(?:alert|alarm|reminder)|add (?:an? )?(?:alert|alarm|reminder))\b/.test(s)){
     const p=parseAlert(s);
     if(p.at){const a=addAlert(p);r=alertConfirm(a)}
@@ -1457,12 +1568,6 @@ function handle(raw){
   else if(wm&&findContact(wm[1])){const c=findContact(wm[1]);const text=wm[2].trim();
     r=text?`Your message to ${c.name} is ready. Tap the button to send it in WhatsApp.`:`What should I tell ${c.name}? Say: message ${c.name} saying hello.`;
     reply(r,text?[{href:waLink(c.phone,text[0].toUpperCase()+text.slice(1)),label:"Send to "+c.name}]:[]);return}
-  else if(m=s.match(/^(?:add|create|new|remind me to|remind me)\s+(?:a\s+)?(?:task\s+|reminder\s+)?(?:to\s+)?(.+)/)){
-    let body=m[1];const time=parseTime(body);const tomorrow=/\btomorrow\b/.test(body);
-    let title=body.replace(/\b(?:at\s+)?\d{1,2}(?:[:.]\d{2})?\s*(?:a\.?\s?m\.?|p\.?\s?m\.?)/gi,"").replace(/\bat\s+\d{1,2}(?:[:.]\d{2})?\b/gi,"").replace(/\b(tomorrow|today|at)\b/gi,"").replace(/\s+/g," ").trim();
-    if(!title){r="What should the task be? Try: add task call mom at 8 pm."}
-    else{title=title[0].toUpperCase()+title.slice(1);const date=tomorrow?addDays(today(),1):today();addTask(title,date,time,guessCat(title));save();render();
-      r=`Done. I added "${title}" ${tomorrow?"for tomorrow":"for today"}${time?" at "+fmtTime(time):""}. I will remind you.`}}
   else if(/what'?s happening|what is happening|what did i miss|any (new )?(notifications|updates|messages)|(read|show|check) (my )?(notifications|updates)|catch me up|what'?s new/.test(s)){
     const un=S.notifs.filter(n=>!n.read);const next=todayTasks().find(k=>!k.done&&(k.time||"99")>=nowHM());const na=S.alerts.filter(a=>a.on).sort((a,b)=>a.at-b.at)[0];
     r=(un.length?`You have ${un.length} new update${un.length>1?"s":""}: `+un.slice(0,3).map(n=>n.title.replace(/[.?!"]+$/,"").replace(/"/g,"")).join(". ")+". ":"No new updates. ")
@@ -1481,20 +1586,30 @@ function handle(raw){
   else if(m=s.match(/(?:mark|finish|complete|done with|i did|i finished)\s+(.+?)(?:\s+as)?(?:\s+done)?$/)){
     const q=m[1].replace(/\b(the|task)\b/g,"").trim();const k=todayTasks().find(k=>!k.done&&k.title.toLowerCase().includes(q))||S.tasks.find(k=>!k.done&&k.title.toLowerCase().includes(q));
     const hb=!k&&S.habits.find(x=>x.name.toLowerCase().includes(q));
-    if(k){k.done=true;save();render();r=`Nice! I marked "${k.title}" as done.`}else if(hb){hb.days=hb.days||{};hb.days[today()]=true;save();render();r=`Great! "${hb.name}" is done for today.`}else r=`I couldn't find a task called "${q}".`}
+    if(k){k.done=true;save();render();r=`Nice! I marked "${k.title}" as done.`}else if(hb){hb.days=hb.days||{};hb.days[today()]=true;save();render();r=`Great! "${hb.name}" is done for today.`}else{pendingConfirm={title:cap(q)};reply(`I couldn't find "${q}" in your tasks. Should I add it?`,[{say:"yes",label:"Yes, add it"},{say:"no",label:"No"}]);return}}
   else if(/how am i doing|summary|report|progress/.test(s)){r=summary()}
   else if(m=s.match(/i feel\s+(\w+)|feeling\s+(\w+)|mood\s+(?:is\s+)?(\w+)/)){const w=(m[1]||m[2]||m[3]);const map={bad:0,sad:0,terrible:0,low:1,tired:1,okay:2,ok:2,fine:2,good:3,happy:3,great:4,amazing:4,awesome:4};
     if(w in map){hd().mood=map[w];save();render();r=`Got it, I saved your mood as ${MOODS[map[w]][0].toLowerCase()}.`+(map[w]<2?" Take a short break and drink some water.":"")}else r="Tell me: I feel bad, low, okay, good or great."}
+  else if(m=s.match(TASK_RE)){const body=m[1].trim();
+    if(!body){pendingConfirm=null;reply("Sure! What is the task? For example: call mom at 8 pm.");pendingConfirm={ask:true};return}
+    r=addTaskFromText(body)||"What should the task be? For example: add task call mom at 8 pm."}
+  else if(m=s.match(NEED_RE)){r=addTaskFromText(m[1],true)||"What do you need to do?"}
+  else if(URDU_TASK.test(s)&&!isQuestion(s)){r=addTaskFromText(s)||"What is the task?"}
   else if(tab){go(tab.id);r=`Opening ${tab.label}.`}
   else if(/time is it|what time/.test(s)){r="It is "+fmtTime(nowHM())+"."}
-  else if(/^(hi|hello|hey|salam|assalam)/.test(s)){r="Hello! How can I help you today?"}
-  else if(/thank/.test(s)){r="You're welcome!"}
+  else if(/^(hi|hello|hey|salam|assalam|aoa)\b/.test(s)){r=`Hello${firstName()?" "+firstName():""}! How can I help you today?`}
+  else if(/thank|shukriya/.test(s)){r="You're welcome!"}
+  else if(aiMode()==="basic"&&!isQuestion(s)&&(()=>{const w=parseWhen(s);return (w.time||w.date)&&w.rest})()){r=addTaskFromText(s)}
+  else if(aiMode()==="basic"&&!isQuestion(s)&&s.split(" ").length<=10){
+    const title=cap(parseWhen(s).rest||s);pendingConfirm={title};
+    reply(`Should I add "${title}" to your tasks for today?`,[{say:"yes",label:"Yes, add task"},{say:"alert",label:"Set an alert"},{say:"no",label:"No"}]);return}
   else if(aiMode()!=="basic"){
     const bubble=addMsg("ai","Thinking…");vaState.textContent="Thinking…";
     askAI(raw).then(out=>{const links=runActions(out.actions);bubble.remove();vaState.textContent=idleMsg();reply(out.reply||"Done.",links)})
       .catch(()=>{bubble.remove();vaState.textContent=idleMsg();reply("I can't reach the smart AI right now. Check your internet or your key in AI settings.")});
     return}
-  else{r="Sorry, I didn't get that. Say \"help\" to see what I can do. To ask me anything, turn on smart AI in AI settings from your profile picture."}
+  else{reply("I can do tasks, alerts, water, sleep and more. Answering questions needs smart AI, which you can turn on in AI settings from your profile picture. Try one of these:",
+    [{say:"add task gym at 6 pm",label:"Add task gym at 6 pm"},{say:"remind me in 10 minutes to drink water",label:"Remind me in 10 min"},{say:"what's my plan today",label:"My plan today"},{say:"help",label:"More examples"}]);return}
   reply(r);
 }
 
@@ -1642,7 +1757,7 @@ function exampleData(){
   return s;
 }
 /* ---------- app: install + updates ---------- */
-const APP_VERSION="2.0.0";
+const APP_VERSION="2.1.0";
 let installEvt=null;
 const isApp=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
