@@ -4,7 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#070b18">
-<meta name="description" content="AETHER AI - your personal assistant dashboard with voice, smart AI and a WhatsApp helper.">
+<meta name="description" content="AETHER AI - your personal assistant with voice, AI mentors, alerts and a WhatsApp helper.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AETHER">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -367,6 +374,41 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .toast .go-link{background:rgba(127,127,127,.18);color:inherit;border-color:transparent}
 .go-link:hover{border-color:var(--a2)}
 
+/* mentor chatbots */
+.mentor{display:flex;flex-direction:column;border-top:3px solid var(--mc)}
+.mentor-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.mentor-h h2{font-size:17px}
+.mentor-h .icon-btn{width:36px;height:36px}
+.m-ava{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;flex:none;background:linear-gradient(135deg,var(--mc),color-mix(in srgb,var(--mc) 45%,var(--a2)));box-shadow:0 8px 20px color-mix(in srgb,var(--mc) 30%,transparent)}
+.m-ava svg{width:22px;height:22px}
+.mlog{display:flex;flex-direction:column;gap:8px;height:min(380px,52vh);overflow-y:auto;padding:12px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line);scroll-behavior:smooth}
+.mlog .msg{max-width:85%;line-height:1.5}
+.mlog .msg.ai{background:var(--surface);border:1px solid var(--line)}
+.typing{display:flex;gap:4px;padding:12px 14px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:wv .9s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+.mstarters{padding:10px 0 0}
+.mform{display:flex;gap:8px;margin-top:10px}
+.mform .inp{flex:1}
+.mmic.on{background:var(--bad);color:#fff;border-color:var(--bad);animation:breathe 1s infinite}
+
+/* communication */
+@media (min-width:1000px){.comm-grid{grid-template-columns:1.25fr 1fr;align-items:start}.comm-mentor .mlog{height:min(520px,60vh)}}
+.challenge{font-family:var(--f-display);font-size:19px;margin:0 0 14px;line-height:1.35}
+.rec-live{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.rec-dot{width:14px;height:14px;border-radius:50%;background:var(--bad);animation:blink 1s infinite}
+.pr-result{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-family:var(--f-mono);font-size:22px}
+.stat span{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tips{margin:12px 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+details{margin-bottom:10px}summary{cursor:pointer;font-weight:600;font-size:13px}
+.wotd b{display:block;font-family:var(--f-display);font-size:24px;background:linear-gradient(120deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.wotd p{margin:8px 0 12px;font-style:italic}
+.lbl-sm{display:none}
+.update-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:65;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;padding:12px 16px;border-radius:16px;background:var(--ink);color:var(--bg);box-shadow:0 16px 40px rgba(0,0,0,.35);width:max-content;max-width:calc(100vw - 32px)}
+.update-bar .btn{padding:8px 14px}
+
 /* phone & small tablet: tabs become a bottom bar */
 @media (max-width:760px){
   header.top{padding-block:12px 4px}
@@ -380,6 +422,10 @@ input[type=range]{width:100%;accent-color:var(--a2)}
   .tabs-wrap .tabs{border-radius:0;border-width:1px 0 0;padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));gap:2px;box-shadow:0 -8px 30px rgba(0,0,0,.18)}
   .tab{flex:1 0 64px;flex-direction:column;gap:3px;padding:8px 4px;font-size:11px}
   .tab span{font-size:11px}
+  .lbl-lg{display:none}.lbl-sm{display:inline}
+  .update-bar{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+  .mlog{height:min(420px,55vh)}
+  .mentor-h .conv-btn{order:5}
   .tab svg{width:20px;height:20px}
   .tab-ink{top:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px))}
   main{padding-block:12px 170px}
@@ -478,7 +524,10 @@ const P={
   spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
   gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
-  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/>',
+  send:'<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
+  download:'<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>'
 };
 const ic=(n,extra="")=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${P[n]}</svg>`;
 
@@ -489,6 +538,7 @@ const SECTIONS=[
   {id:"alerts",label:"Alerts",icon:"bell",sub:"Alarms and reminders with a pop-up, sound and voice."},
   {id:"health",label:"Health",icon:"heart",sub:"Water, sleep, steps and mood."},
   {id:"study",label:"Study",icon:"book",sub:"Track study time and stay focused."},
+  {id:"comm",label:"Communication",short:"Speak",icon:"chat",sub:"Speak and write with confidence. Practice every day with your coach."},
   {id:"career",label:"Career",icon:"brief",sub:"Big goals, broken into small steps."},
   {id:"habits",label:"Habits",icon:"repeat",sub:"Small daily habits build big results."},
   {id:"social",label:"Social",icon:"share",sub:"Plan posts and watch your followers grow."},
@@ -501,7 +551,7 @@ const MOODS=[["Bad","var(--bad)"],["Low","var(--warm)"],["Okay","var(--muted)"],
 const STEP_GOAL=8000;
 
 const NSET=()=>({before:10,nudge:true,morning:{on:true,time:"08:00"},evening:{on:true,time:"21:00"},social:{on:false,times:["13:00","20:00"],plats:["Instagram","WhatsApp"]},ran:{}});
-const blank=()=>({profile:null,alerts:[],notifs:[],nset:NSET(),tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},wa:{contacts:[],scheduled:[]},example:false});
+const blank=()=>({profile:null,alerts:[],notifs:[],nset:NSET(),chats:{study:[],health:[],comm:[]},comm:{practices:[]},tasks:[],health:{},goals:{water:8,sleep:8,steps:8000},study:{subjects:[],sessions:[]},career:[],habits:[],social:{accounts:[],posts:[]},wa:{contacts:[],scheduled:[]},example:false});
 let S=blank(), view="home", schedFilter="today", store={kind:"none"}, pendingSave=null, saving=Promise.resolve(), dirty=false, animate=true;
 
 const pad=n=>String(n).padStart(2,"0");
@@ -528,7 +578,7 @@ const isEmpty=()=>!S.tasks.length&&!S.study.subjects.length&&!S.career.length&&!
 
 /* ---------- storage ---------- */
 function normalize(d){const b=blank();d=d&&typeof d==="object"?d:{};
-  return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})},wa:{...b.wa,...(d.wa||{})},
+  return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})},wa:{...b.wa,...(d.wa||{})},chats:{...b.chats,...(d.chats||{})},comm:{...b.comm,...(d.comm||{})},
     nset:{...b.nset,...(d.nset||{}),morning:{...b.nset.morning,...((d.nset||{}).morning||{})},evening:{...b.nset.evening,...((d.nset||{}).evening||{})},social:{...b.nset.social,...((d.nset||{}).social||{})},ran:{...((d.nset||{}).ran||{})}}}}
 function save(){
   dirty=true;clearTimeout(pendingSave);
@@ -591,7 +641,7 @@ document.getElementById("obForm").onsubmit=e=>{
 };
 const menu=document.getElementById("menu"),avatarBtn=document.getElementById("avatarBtn");
 avatarBtn.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;avatarBtn.setAttribute("aria-expanded",open);
-  if(open){menu.innerHTML=`<div class="who"><b></b><span></span></div><button data-act="editProfile">${ic("user")}Edit profile</button><button data-act="openSettings">${ic("spark")}AI settings</button><button data-act="signOut">${ic("out")}Sign out</button>`;
+  if(open){menu.innerHTML=`<div class="who"><b></b><span></span></div><button data-act="editProfile">${ic("user")}Edit profile</button><button data-act="openSettings">${ic("spark")}AI settings</button>${!isApp()?`<button data-act="installApp">${ic("download")}Install app</button>`:""}<button data-act="signOut">${ic("out")}Sign out</button><div class="meta" style="padding:8px 12px 4px">AETHER AI · version ${APP_VERSION}</div>`;
     menu.querySelector(".who b").textContent=(S.profile&&S.profile.name)||"Guest";menu.querySelector(".who span").textContent=(S.profile&&S.profile.email)||""}};
 document.addEventListener("click",e=>{if(!menu.hidden&&!e.target.closest("#menu,#avatarBtn"))menu.hidden=true},true);
 
@@ -690,7 +740,7 @@ document.getElementById("bellBtn").innerHTML=ic("bell")+'<span class="badge" id=
 /* ---------- tabs ---------- */
 function buildTabs(){
   const nav=document.getElementById("tabs");
-  nav.insertAdjacentHTML("beforeend",SECTIONS.map(s=>`<button class="tab" role="tab" id="tab-${s.id}" data-go="${s.id}" aria-selected="false">${ic(s.icon)}<span>${s.label}</span></button>`).join(""));
+  nav.insertAdjacentHTML("beforeend",SECTIONS.map(s=>`<button class="tab" role="tab" id="tab-${s.id}" data-go="${s.id}" aria-selected="false">${ic(s.icon)}<span class="lbl-lg">${s.label}</span><span class="lbl-sm">${s.short||s.label}</span></button>`).join(""));
   addEventListener("resize",moveInk);
   try{document.fonts.ready.then(moveInk)}catch(e){}
 }
@@ -699,6 +749,8 @@ function moveInk(){
   ink.style.width=b.offsetWidth+"px";ink.style.transform=`translateX(${b.offsetLeft}px)`;
 }
 function go(v){
+  for(const id in mState){const st=mState[id];if(mentorView(id)!==v&&(st.talk||st.listening)){st.talk=false;try{st.rec&&st.rec.stop()}catch(e){}}}
+  if(v!=="comm"&&practice.on)finishPractice();
   view=v;animate=true;
   try{localStorage.setItem("aether-view",v)}catch(e){}
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.go===v));
@@ -751,6 +803,7 @@ function vHome(){
   const posts=sortT(S.social.posts.filter(p=>p.status!=="posted"&&p.date>=t)).slice(0,3);
   const days=last7();const doneByDay=days.map(d=>S.tasks.filter(k=>k.date===d&&k.done).length);
   return `${isEmpty()?`<div class="callout rise" style="margin-bottom:16px"><p><b>New here?</b> Load sample data to see how AETHER works. You can remove it with one click later. Or tap the round button and say <b>"help"</b>.</p><button class="btn" data-act="loadExample">Show sample data</button></div>`:""}
+  ${canOfferInstall()?`<div class="callout rise" style="margin-bottom:16px"><p>${ic("download","style='width:16px;height:16px;vertical-align:-3px'")} <b>Get the AETHER app.</b> Install it on your phone or computer. It opens full screen, works offline and updates itself.</p><div style="display:flex;gap:8px"><button class="btn" data-act="installApp">Install app</button><button class="btn ghost sm" data-act="hideInstall">Not now</button></div></div>`:""}
   <section class="card hero rise"><div class="hero-in"><div>
     <div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div>
     <h1 style="margin-top:6px">${greet}${firstName()?", "+esc(firstName()):""}!</h1>
@@ -816,6 +869,7 @@ function vHealth(){
   const water=days.map(d=>(S.health[d]&&S.health[d].water)||0),sleep=days.map(d=>+((S.health[d]&&S.health[d].sleep)||0));
   const steps=+h.steps||0;
   return `<div class="grid g3">
+    ${mentorCard("health","span2")}
     ${card("Water","Goal "+S.goals.water+" glasses",`<div style="display:flex;align-items:center;gap:16px">${ring((h.water||0)/S.goals.water,96,10,"var(--c-health)",h.water||0,"glasses")}
       <div style="display:flex;gap:8px"><button class="btn ghost" data-act="water" data-n="-1" aria-label="Remove a glass">−</button><button class="btn" data-act="water" data-n="1">${ic("plus")}Glass</button></div></div>
       <div class="glasses">${Array.from({length:S.goals.water},(_,i)=>`<button class="glass ${i<(h.water||0)?"full":""}" data-act="setWater" data-n="${i+1}" aria-label="${i+1} glasses"></button>`).join("")}</div>`)}
@@ -837,6 +891,7 @@ function vStudy(){
   const ws=weekStart(),days=last7(),mins=days.map(studyMins);
   const opts=S.study.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
   return `<div class="grid g2">
+    ${mentorCard("study","span2")}
     ${card("Focus timer","25 minutes",`<div style="display:flex;flex-direction:column;align-items:center;gap:14px">
       <div id="pomoRing">${ring(1-pomo.left/pomo.total,170,12,"var(--c-study)",`<span id="pomoTxt">${pad(Math.floor(pomo.left/60))}:${pad(pomo.left%60)}</span>`,pomo.run?"stay focused":"ready")}</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"><select class="inp" id="p-subj" aria-label="Subject">${opts||`<option value="">No subject yet</option>`}</select>
@@ -923,13 +978,171 @@ function openSettings(){
     </div></div>`;
 }
 
-const VIEWS={home:vHome,schedule:vSchedule,alerts:vAlerts,health:vHealth,study:vStudy,career:vCareer,habits:vHabits,social:vSocial,whatsapp:vWhatsApp};
+/* ---------- mentors: Study Buddy, Health Mentor, Communication Coach ---------- */
+const MENTORS={
+  study:{name:"Study Buddy",role:"Your personal tutor",color:"var(--c-study)",icon:"book",
+    hello:"Hi! I'm your Study Buddy. Ask me to explain any topic, quiz you, or make a study plan. What are you studying today?",
+    starters:["Explain photosynthesis simply","Quiz me with 3 questions","Make a study plan for my exam","How do I stop procrastinating?","Help me memorize faster"],
+    system:`You are Study Buddy, a patient and friendly tutor inside the AETHER AI app. The user may be a student and may not be a native English speaker, so use simple English.
+Explain step by step with small, real-life examples. When asked to quiz, ask ONE question at a time and wait for the answer, then say if it was right and why. Build study plans with clear days and times. Keep answers short (under 120 words) unless the user asks for more. Plain text only: no markdown headings, no bold; you may use short lines starting with "-". End with a short question that keeps the user learning.`,
+    ctx:()=>({subjects:S.study.subjects.map(s=>({name:s.name,goalHoursPerWeek:s.weeklyGoal,minutesThisWeek:S.study.sessions.filter(x=>x.subj===s.id&&x.date>=weekStart()).reduce((a,x)=>a+ +x.mins,0)})),studyMinutesToday:studyMins(today())})},
+  health:{name:"Health Mentor",role:"Your wellness guide",color:"var(--c-health)",icon:"heart",
+    hello:"Hi! I'm your Health Mentor. I can help with sleep, water, food, exercise and stress, using your own data. What would you like to work on?",
+    starters:["Make me a healthy daily routine","How can I sleep better?","15 minute home workout","What should I eat for more energy?","How do I manage stress?"],
+    system:`You are Health Mentor, a warm wellness coach inside the AETHER AI app. Help with sleep, hydration, nutrition, exercise, posture, stress and healthy habits, and use the user's tracked data (water, sleep, steps, exercise, mood) to make advice personal. Use simple English.
+You are not a doctor: never diagnose illnesses and never give medicine names or doses. If the user describes symptoms that last, get worse or worry them, tell them to see a doctor. If they mention an emergency (chest pain, trouble breathing, fainting, severe bleeding, signs of stroke, or thoughts of hurting themselves), tell them first to call their local emergency number right away (1122 in Pakistan) or go to the nearest hospital.
+Keep answers short (under 120 words) and practical, with 2-4 small steps they can start today. Plain text only: no markdown headings, no bold; you may use short lines starting with "-". End with one short follow-up question.`,
+    ctx:()=>({last7days:last7().map(d=>{const h=S.health[d]||{};return{date:d,water:h.water||0,sleepHours:h.sleep||null,steps:h.steps||null,exercised:!!h.workout,mood:h.mood!=null?MOODS[h.mood][0]:null}}),goals:S.goals})},
+  comm:{name:"Communication Coach",role:"Speak and write with confidence",color:"var(--a1)",icon:"chat",
+    hello:"Hi! I'm your Communication Coach. We can practice a job interview, fix your English, write a polite message, or build your speaking confidence. Where shall we start?",
+    starters:["Practice a job interview with me","Correct my English: I am go to market yesterday","How can I speak with confidence?","Help me write a polite email to my teacher","Role-play small talk with a new friend"],
+    system:`You are Communication Coach inside the AETHER AI app. Help the user speak and write better in English: confidence, clear speaking, grammar, vocabulary, emails and messages, interviews, presentations, small talk and difficult conversations. The user may not be a native English speaker, so use simple English and be encouraging.
+When correcting, show their sentence and then the better version, with one short reason. In a role-play (interview, small talk, etc.), stay in the role, ask one question at a time, and after 4-5 turns give friendly feedback. Keep answers short (under 120 words). Plain text only: no markdown headings, no bold; you may use short lines starting with "-". End with a question or a small task to practice.`,
+    ctx:()=>({recentSpeakingPractice:S.comm.practices.slice(-5).map(p=>({date:p.date,wordsPerMinute:p.wpm,fillerWords:p.fillers,words:p.words}))})}
+};
+const LOCAL={
+  study:[
+    [/procrastinat|lazy|motivat|focus|distract/,"Try this:\n- Pick one small task that takes 10 minutes.\n- Put your phone in another room.\n- Start the 25 minute focus timer on this page.\n- After it rings, take a 5 minute break.\nStarting is the hardest part. Which task will you start with?"],
+    [/memori|remember|forget/,"To remember better:\n- Read a little, then close the book and say it out loud from memory.\n- Review it again after 1 day, 3 days and 1 week.\n- Teach it to someone, even an imaginary friend.\nWhat do you need to memorize?"],
+    [/plan|schedule|exam|test/,"A simple exam plan:\n- List every topic and mark it easy, medium or hard.\n- Study hard topics first, when you are fresh.\n- 2 to 3 focus sessions a day, with breaks.\n- The last 2 days are only for revision and practice questions.\nWhen is your exam?"],
+    [/note/,"Good notes are short. Write the main idea in your own words, add one example, and finish each page with 2 questions you could be asked. Want to try it on today's topic?"],
+    [/quiz|question/,"Smart AI can quiz you on any topic. Without it, try this: cover your notes, write 5 questions about the topic, and answer them from memory. Turn on smart AI in AI settings for real quizzes."]],
+  health:[
+    [/sleep|insomnia|tired/,"For better sleep:\n- Go to bed and wake up at the same time every day.\n- No phone 30 minutes before bed.\n- Keep the room dark and cool.\n- Avoid tea, coffee and cola after 4 pm.\nWhat time do you usually sleep?"],
+    [/water|thirst|hydrat/,`Aim for about ${S.goals.water} glasses a day. Keep a bottle near you, drink one glass after waking up and one with every meal. You can tap a glass in the Health tab each time.`],
+    [/eat|food|diet|energy|weight/,"For steady energy:\n- Eat breakfast with protein, like eggs, yogurt or daal.\n- Fill half your plate with vegetables.\n- Choose fruit over sweets and fizzy drinks.\n- Eat slowly and stop when you feel 80% full.\nWhat do you usually eat for breakfast?"],
+    [/exercis|workout|gym|fit|walk/,"A 15 minute home workout:\n- 2 minutes marching on the spot\n- 10 squats, 10 wall push-ups, 20 second plank\n- Repeat 3 times\n- 2 minutes of stretching\nStart slowly and stop if anything hurts."],
+    [/stress|anxi|worr|tense|calm/,"When stress feels high, try box breathing: breathe in for 4, hold for 4, out for 4, hold for 4. Repeat 4 times. A short walk, talking to a friend and good sleep also help a lot. If stress lasts for weeks, please talk to a doctor or counsellor."]],
+  comm:[
+    [/confiden|shy|nervous|fear/,"To speak with more confidence:\n- Stand straight and slow down a little.\n- Practice your first two sentences until they feel easy.\n- Pause instead of saying um.\n- Try the Daily speaking challenge on this page every day.\nWhat situation makes you nervous?"],
+    [/interview|job/,"Common interview question: \"Tell me about yourself.\" Answer in 3 parts: who you are now, one thing you did well, and why you want this job. Keep it under 1 minute. Try saying yours out loud in the speaking challenge."],
+    [/email|letter|message|write/,"A polite message has 4 parts:\n- Greeting: Dear Sir / Hi Ali\n- Why you are writing, in one line\n- What you need, clearly\n- Thanks and your name\nWhat do you want to write about?"],
+    [/correct|grammar|english|mistake/,"Smart AI can correct any sentence for you. A quick tip: for things that already happened, use the past tense. \"I am go to market yesterday\" becomes \"I went to the market yesterday.\""],
+    [/small talk|friend|conversation|talk to people/,"Easy small talk: ask open questions that start with how, what or why. For example, \"How was your weekend?\" Listen, then ask one more question about their answer. People love to be listened to."]]
+};
+const EMERGENCY=/chest pain|can'?t breathe|cannot breathe|trouble breathing|suicid|kill myself|hurt myself|self.?harm|fainted|severe bleeding|stroke|heart attack/;
+const mState={};const ms=id=>mState[id]||(mState[id]={busy:false,talk:false,listening:false,voice:false,rec:null});
+async function askMentor(id,text){
+  const p=MENTORS[id],sys=p.system+"\nToday is "+new Date().toDateString()+". The user's name is "+(firstName()||"unknown")+". User data (JSON): "+JSON.stringify(p.ctx());
+  const hist=S.chats[id].slice(-12).map(m=>({role:m.role,content:m.text}));
+  if(aiSample){const r=await aiSample([{role:"user",content:sys+"\n\nConversation so far:\n"+hist.map(m=>(m.role==="user"?"User":p.name)+": "+m.content).join("\n\n")+"\n\nReply as "+p.name+"."}],{modelTier:"default",cache:false});return (r.text||"").trim()}
+  const client=await getClient();
+  const res=await client.beta.messages.create({model:AI_MODEL,max_tokens:2000,betas:["server-side-fallback-2026-07-01"],fallbacks:"default",output_config:{effort:"low"},system:sys,messages:hist});
+  if(res.stop_reason==="refusal")return"Sorry, I can't help with that one. Let's try another question.";
+  return res.content.filter(b=>b.type==="text").map(b=>b.text).join("").trim();
+}
+function localMentor(id,text){
+  const s=text.toLowerCase();const hit=LOCAL[id].find(([re])=>re.test(s));
+  return (hit?hit[1]:`I can give quick tips about ${id==="study"?"focus, memory, exam plans and notes":id==="health"?"sleep, water, food, exercise and stress":"confidence, interviews, emails, grammar and small talk"}. Try one of the buttons below.`)+"\n\n(For full answers to any question, turn on smart AI: tap your profile picture, then AI settings.)";
+}
+function msgHtml(m){return `<div class="msg ${m.role==="user"?"me":"ai"}">${esc(m.text).replace(/\n/g,"<br>")}</div>`}
+function paintLog(id){const el=document.getElementById("mlog-"+id);if(!el)return;const st=ms(id);
+  el.innerHTML=msgHtml({role:"assistant",text:MENTORS[id].hello})+S.chats[id].map(msgHtml).join("")+(st.busy?`<div class="msg ai typing"><i></i><i></i><i></i></div>`:"");el.scrollTop=el.scrollHeight}
+function paintMentorBar(id){const st=ms(id),b=document.getElementById("mtalk-"+id),v=document.getElementById("mvoice-"+id),mic=document.getElementById("mmic-"+id),stt=document.getElementById("mstate-"+id);
+  if(b){b.setAttribute("aria-pressed",st.talk);b.querySelector("span:last-child").textContent=st.talk?"End talk":"Talk"}
+  if(v){v.setAttribute("aria-pressed",st.voice);v.innerHTML=ic(st.voice?"vol":"mute")}
+  if(mic)mic.classList.toggle("on",st.listening);
+  if(stt)stt.textContent=st.listening?"Listening…":st.busy?"Thinking…":st.talk?"Talk mode is on":MENTORS[id].role}
+async function mentorSend(id,text){
+  text=String(text||"").trim();const st=ms(id);if(!text||st.busy)return;
+  if(st.talk&&/^(stop|bye|goodbye|end|that's all|thats all)\b/i.test(text)){st.talk=false;paintMentorBar(id);return}
+  S.chats[id].push({role:"user",text});st.busy=true;paintLog(id);paintMentorBar(id);
+  let reply;
+  if(id==="health"&&EMERGENCY.test(text.toLowerCase()))reply="This could be serious. Please call your local emergency number right now (1122 in Pakistan) or go to the nearest hospital. If you are thinking about hurting yourself, please also tell someone you trust right away. You are not alone.";
+  else if(aiMode()==="basic")reply=localMentor(id,text);
+  else{try{reply=await askMentor(id,text)}catch(e){reply="I can't reach the smart AI right now. Check your internet or your key in AI settings."}}
+  S.chats[id].push({role:"assistant",text:reply||"Sorry, could you say that again?"});S.chats[id]=S.chats[id].slice(-40);save();
+  st.busy=false;paintLog(id);paintMentorBar(id);
+  if(st.voice||st.talk){await speak(reply.replace(/\n-/g,". "),true);if(st.talk&&view===mentorView(id))mentorListen(id)}
+}
+const mentorView=id=>id==="comm"?"comm":id;
+function mentorListen(id){
+  const st=ms(id);if(!SR){toast("Voice is not supported here","Open AETHER in Chrome or Edge to talk. You can still type.");st.talk=false;paintMentorBar(id);return}
+  if(st.listening){try{st.rec.stop()}catch(e){}return}
+  if(listening)stopListen();try{speechSynthesis.cancel()}catch(e){}
+  const rec=new SR();st.rec=rec;rec.lang="en-US";rec.interimResults=true;let final="",blocked=false;
+  rec.onresult=e=>{let t="";for(const r of e.results){t+=r[0].transcript;if(r.isFinal)final=t}const inp=document.getElementById("min-"+id);if(inp)inp.value=t};
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){blocked=true;st.talk=false;toast("Microphone blocked","Allow the microphone in your browser to talk.")}};
+  rec.onend=()=>{st.listening=false;paintMentorBar(id);const inp=document.getElementById("min-"+id);
+    if(final.trim()){if(inp)inp.value="";st.silent=0;mentorSend(id,final)}
+    else if(st.talk&&!blocked){st.silent=(st.silent||0)+1;if(st.silent<3&&view===mentorView(id))setTimeout(()=>mentorListen(id),300);else{st.talk=false;paintMentorBar(id)}}};
+  try{rec.start();st.listening=true}catch(e){st.listening=false}paintMentorBar(id);
+}
+function mentorCard(id,cls="",delay=0){
+  const p=MENTORS[id],st=ms(id);
+  return `<section class="card rise mentor ${cls}" style="animation-delay:${delay}ms;--mc:${p.color}">
+    <div class="mentor-h"><span class="m-ava">${ic(p.icon)}</span><div class="grow"><h2>${p.name}</h2><div class="meta" id="mstate-${id}">${p.role}</div></div>
+      <button class="conv-btn" id="mtalk-${id}" data-act="mTalk" data-id="${id}" aria-pressed="${st.talk}"><span class="live"></span><span>${st.talk?"End talk":"Talk"}</span></button>
+      <button class="icon-btn" id="mvoice-${id}" data-act="mVoice" data-id="${id}" aria-pressed="${st.voice}" aria-label="Read answers out loud">${ic(st.voice?"vol":"mute")}</button>
+      <button class="icon-btn" data-act="mClear" data-id="${id}" aria-label="Start a new chat" title="New chat">${ic("trash")}</button></div>
+    <div class="mlog" id="mlog-${id}" aria-live="polite">${msgHtml({role:"assistant",text:p.hello})}${S.chats[id].map(msgHtml).join("")}</div>
+    <div class="sugs mstarters">${p.starters.map(s=>`<button class="sug" type="button" data-act="mStarter" data-id="${id}">${esc(s)}</button>`).join("")}</div>
+    <form class="mform" data-form="mentor" data-id="${id}"><button type="button" class="icon-btn mmic" id="mmic-${id}" data-act="mMic" data-id="${id}" aria-label="Speak">${ic("mic")}</button>
+      <input class="inp wide" id="min-${id}" name="q" data-keep placeholder="Ask ${p.name}…" autocomplete="off" aria-label="Message to ${p.name}"><button class="btn" aria-label="Send">${ic("send")}</button></form>
+    ${aiMode()==="basic"?`<p class="note" style="margin:8px 0 0">Basic mode gives quick tips. For full answers, turn on smart AI in AI settings.</p>`:""}
+  </section>`;
+}
+
+/* ---------- communication: daily speaking challenge ---------- */
+const PROMPTS=["Introduce yourself in one minute.","Describe your perfect weekend.","Talk about a person who inspires you, and why.","Explain how to make your favourite food.","Describe your city to a tourist.","Tell a story about a mistake that taught you something.","What is your dream job, and why?","Give advice to a new student at your school or university.","Describe the best day of your life.","Explain why sleep is important, as if to a child.","Talk about a skill you want to learn this year.","Convince a friend to start exercising.","Describe your daily routine.","Talk about your favourite app and how it helps you."];
+const WORDS=[["Articulate","able to express ideas clearly","She is very articulate in meetings."],["Concise","short and clear","Keep your answer concise."],["Confident","sure of yourself","He gave a confident presentation."],["Elaborate","to explain in more detail","Could you elaborate on your idea?"],["Persuade","to convince someone","I persuaded my friend to join the gym."],["Empathy","understanding others' feelings","Good leaders show empathy."],["Clarify","to make something clear","Let me clarify what I meant."],["Feedback","comments to help improve","Thanks for your feedback."],["Initiative","doing things without being told","She took the initiative to help."],["Diligent","hardworking and careful","He is a diligent student."],["Resilient","able to recover from problems","Be resilient when things go wrong."],["Collaborate","to work together","We collaborate on projects."],["Punctual","on time","Please be punctual for the interview."],["Gratitude","being thankful","Show gratitude to people who help you."],["Fluent","speaking easily and well","She is fluent in English."]];
+const dayIdx=n=>{const d=new Date();return (d.getFullYear()*372+d.getMonth()*31+d.getDate())%n};
+const FILLERS=/\b(um+|uh+|er+|ah+|like|you know|basically|actually|literally|i mean|kind of|sort of)\b/gi;
+let practice={on:false,start:0,text:"",rec:null,result:null,timer:null};
+function analyzeSpeech(text,secs){
+  const words=(text.match(/\b[\w']+\b/g)||[]).length,fillers=(text.match(FILLERS)||[]).length,wpm=secs>3?Math.round(words/(secs/60)):0;
+  const tips=[];
+  if(wpm&&wpm<100)tips.push("You spoke a bit slowly. Try to keep a steady pace, around 120 to 150 words per minute.");
+  else if(wpm>170)tips.push("You spoke quite fast. Slow down a little and pause between ideas.");
+  else if(wpm)tips.push("Great pace! Your speed is easy to follow.");
+  if(fillers>=4)tips.push(`You used ${fillers} filler words (like "um" or "like"). Try a short pause instead.`);else tips.push("Very few filler words. Well done!");
+  if(words<40)tips.push("Try to speak a little longer. Add one example or a short story.");
+  return {words,fillers,wpm,secs:Math.round(secs),tips};
+}
+function startPractice(){
+  if(!SR){toast("Voice is not supported here","Open AETHER in Chrome or Edge to practise speaking.");return}
+  if(listening)stopListen();try{speechSynthesis.cancel()}catch(e){}
+  const rec=new SR();rec.lang="en-US";rec.continuous=true;rec.interimResults=true;practice={on:true,start:Date.now(),text:"",rec,result:null,timer:null};
+  rec.onresult=e=>{let t="";for(const r of e.results)t+=r[0].transcript+" ";practice.text=t.trim();const el=document.getElementById("prText");if(el)el.textContent=practice.text||"…"};
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){toast("Microphone blocked","Allow the microphone in your browser to practise.");practice.on=false;render()}};
+  rec.onend=()=>{if(practice.on){try{rec.start()}catch(e){finishPractice()}}};
+  try{rec.start()}catch(e){}
+  practice.timer=setInterval(()=>{const el=document.getElementById("prTime");if(el){const s=Math.round((Date.now()-practice.start)/1000);el.textContent=pad(Math.floor(s/60))+":"+pad(s%60)}},500);
+  render();
+}
+function finishPractice(){
+  if(!practice.on)return;practice.on=false;clearInterval(practice.timer);try{practice.rec.stop()}catch(e){}
+  const secs=(Date.now()-practice.start)/1000,r=analyzeSpeech(practice.text,secs);practice.result={...r,text:practice.text,prompt:PROMPTS[dayIdx(PROMPTS.length)]};
+  if(r.words>0){S.comm.practices.push({id:uid(),date:today(),prompt:practice.result.prompt,words:r.words,wpm:r.wpm,fillers:r.fillers,secs:r.secs});S.comm.practices=S.comm.practices.slice(-60);save()}
+  render();
+}
+function commStreak(){let n=0,d=today();const days=new Set(S.comm.practices.map(p=>p.date));if(!days.has(d))d=addDays(d,-1);while(days.has(d)){n++;d=addDays(d,-1)}return n}
+function vComm(){
+  const prompt=PROMPTS[dayIdx(PROMPTS.length)],w=WORDS[dayIdx(WORDS.length)],r=practice.result,hist=S.comm.practices.slice(-5).reverse();
+  return `<div class="grid comm-grid">
+    ${mentorCard("comm","comm-mentor")}
+    <div class="grid">
+      ${card("Daily speaking challenge",`${commStreak()} day streak`,`<p class="challenge">"${esc(prompt)}"</p>
+        ${practice.on?`<div class="rec-live"><span class="rec-dot"></span><span class="timer" id="prTime">00:00</span></div><p class="meta" id="prText" style="min-height:40px">Start speaking…</p><button class="btn" data-act="prStop" style="background:var(--bad);color:#fff">Stop and check</button>`
+        :`<button class="btn" data-act="prStart">${ic("mic")}Start speaking</button><p class="note" style="margin-top:8px">Speak for 1 to 2 minutes. Aether checks your speed and filler words.</p>`}
+        ${r&&!practice.on?`<div class="pr-result"><div class="grid g3" style="gap:10px">${[["Words",r.words],["Words / min",r.wpm||"–"],["Filler words",r.fillers]].map(([l,v])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("")}</div>
+          <ul class="tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>${r.text?`<details><summary>What you said</summary><p class="meta">${esc(r.text)}</p></details><button class="btn ghost sm" data-act="prFeedback">${ic("spark")}Get coach feedback</button>`:""}</div>`:""}`,"",60)}
+      ${card("Word of the day","",`<div class="wotd"><b>${w[0]}</b><span class="meta">${w[1]}</span><p>"${w[2]}"</p></div><button class="btn ghost sm" data-act="sayWord">${ic("vol")}Hear it</button>`,"",120)}
+      ${card("Your practice",`${S.comm.practices.length} sessions`,`<div class="list">${hist.map(p=>`<div class="row"><div class="grow">${esc(p.prompt)}<div class="meta">${fmtDay(p.date)} · ${p.words} words · ${p.wpm||"–"} wpm · ${p.fillers} fillers</div></div></div>`).join("")||`<div class="empty">Do your first speaking challenge to see your progress.</div>`}</div>`,"",180)}
+    </div></div>`;
+}
+
+const VIEWS={home:vHome,schedule:vSchedule,alerts:vAlerts,health:vHealth,study:vStudy,comm:vComm,career:vCareer,habits:vHabits,social:vSocial,whatsapp:vWhatsApp};
 function render(){
   const sec=SECTIONS.find(s=>s.id===view),main=document.getElementById("main");
+  const kept={};document.querySelectorAll("[data-keep]").forEach(el=>{if(el.value)kept[el.id]=el.value});const focusId=document.activeElement&&document.activeElement.id;
   main.className=animate?"anim":"";
   main.innerHTML=(view==="home"?"":`<div class="page-head rise"><div><div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div><h1>${sec.label}</h1><p>${sec.sub}</p></div></div>`)
     +(S.example?`<div class="callout rise" style="margin-bottom:16px"><p>You are looking at <b>sample data</b>. It is not your real information.</p><button class="btn ghost sm" data-act="clearExample">Remove sample data</button></div>`:"")
     +VIEWS[view]();
+  for(const k in kept){const el=document.getElementById(k);if(el)el.value=kept[k]}
+  if(focusId&&kept[focusId]!==undefined){const el=document.getElementById(focusId);if(el)el.focus({preventScroll:true})}
+  document.querySelectorAll(".mlog").forEach(el=>el.scrollTop=el.scrollHeight);
   animate=false;paintBadge();
 }
 
@@ -1040,8 +1253,19 @@ document.addEventListener("click",e=>{
     case"copyPost":{const p=find(S.social.posts,id);navigator.clipboard.writeText(p.text).then(()=>toast("Copied","Now paste it in the app."),()=>toast("Could not copy","Select the text and copy it yourself."));return}
     case"alerts":askNotify();return;
     case"openVoice":openVA();return;
-    case"loadExample":{const p=S.profile;S=exampleData();S.profile=p;animate=true;toast("Sample data loaded","Look around. Remove it any time.");break}
-    case"clearExample":{const p=S.profile;S=blank();S.profile=p;animate=true;break}
+    case"loadExample":{const keep={profile:S.profile,chats:S.chats,comm:S.comm,nset:S.nset};S=exampleData();Object.assign(S,keep);animate=true;toast("Sample data loaded","Look around. Remove it any time.");break}
+    case"clearExample":{const keep={profile:S.profile,chats:S.chats,comm:S.comm,nset:S.nset};S=blank();Object.assign(S,keep);animate=true;break}
+    case"mTalk":{const st=ms(id);st.talk=!st.talk;paintMentorBar(id);if(st.talk){st.silent=0;speak(`I'm listening${firstName()?", "+firstName():""}. Go ahead.`,true).then(()=>{if(st.talk)mentorListen(id)})}else{try{st.rec&&st.rec.stop();speechSynthesis.cancel()}catch(_){}}return}
+    case"installApp":menu.hidden=true;installApp();return;
+    case"hideInstall":try{localStorage.setItem("aether-install-hide","1")}catch(_){}render();return;
+    case"mVoice":{const st=ms(id);st.voice=!st.voice;paintMentorBar(id);if(!st.voice)try{speechSynthesis.cancel()}catch(_){}return}
+    case"mClear":S.chats[id]=[];save();paintLog(id);return;
+    case"mStarter":mentorSend(id,b.textContent);return;
+    case"mMic":mentorListen(id);return;
+    case"prStart":startPractice();return;
+    case"prStop":finishPractice();return;
+    case"prFeedback":{const r=practice.result;if(!r)return;mentorSend("comm",`Please give me feedback on my speaking practice. The topic was: "${r.prompt}". What I said: "${r.text}". I spoke ${r.words} words at ${r.wpm} words per minute with ${r.fillers} filler words.`);document.getElementById("mlog-comm")?.scrollIntoView({behavior:"smooth",block:"center"});return}
+    case"sayWord":{const w=WORDS[dayIdx(WORDS.length)];speak(`${w[0]}. ${w[1]}. For example: ${w[2]}`,true);return}
     case"editProfile":menu.hidden=true;showOnboard(true);return;
     case"signOut":menu.hidden=true;S.profile=null;save();paintProfile();showOnboard();return;
     case"openSettings":menu.hidden=true;openSettings();return;
@@ -1090,6 +1314,7 @@ document.addEventListener("submit",e=>{
     case"account":S.social.accounts.push({id:uid(),platform:d.platform,handle:d.handle.trim(),history:d.f!==""?[{date:today(),followers:+d.f}]:[]});break;
     case"followers":{if(d.n==="")return;const a=find(S.social.accounts,fid);a.history=(a.history||[]).filter(h=>h.date!==today());a.history.push({date:today(),followers:+d.n});break}
     case"post":S.social.posts.push({id:uid(),platform:d.platform,date:d.date,time:d.time,text:d.text.trim(),status:"scheduled"});toast("Post planned","Aether will remind you.");break;
+    case"mentor":{const inp=document.getElementById("min-"+fid);const q=(d.q||"").trim();if(!q)return;if(inp)inp.value="";mentorSend(fid,q);return}
     case"alert":{const txt=(d.text||"").trim()||"Reminder";
       if(d.rep==="interval"){const ev=+d.every;if(!(ev>=1)){toast("How often?","Type the number of minutes, e.g. 60 for every hour.");return}
         const at=d.time?(()=>{let x=new Date(d.date+"T"+d.time).getTime();while(x<=Date.now())x+=ev*60000;return x})():Date.now()+ev*60000;
@@ -1416,6 +1641,38 @@ function exampleData(){
     {id:uid(),to:ali.id,date:t,time:"17:00",rep:"once",text:"Hi Ali, are we still meeting at 6?",sent:false}];
   return s;
 }
+/* ---------- app: install + updates ---------- */
+const APP_VERSION="2.0.0";
+let installEvt=null;
+const isApp=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;if(view==="home")render()});
+addEventListener("appinstalled",()=>{installEvt=null;toast("AETHER is installed","Open it from your home screen like any app.");if(view==="home")render()});
+function canOfferInstall(){if(isApp())return false;try{if(localStorage.getItem("aether-install-hide")==="1")return false}catch(e){}return !!installEvt||isIOS()}
+async function installApp(){
+  if(installEvt){installEvt.prompt();const r=await installEvt.userChoice;installEvt=null;if(r.outcome!=="accepted")toast("Not installed","You can install it later from your profile menu.");render();return}
+  if(isIOS()){toast("Install on iPhone","In Safari, tap the Share button, then \"Add to Home Screen\".");return}
+  toast("Install from your browser","Open the browser menu (⋮) and choose \"Install app\" or \"Add to Home screen\".");
+}
+function showUpdateBar(reg){
+  if(document.getElementById("updBar"))return;const bar=document.createElement("div");bar.className="update-bar";bar.id="updBar";
+  bar.innerHTML=`<span><b>New version ready.</b> Update to get the latest features.</span><button class="btn" id="updBtn">Update now</button>`;
+  document.body.appendChild(bar);
+  document.getElementById("updBtn").onclick=()=>{const w=reg.waiting;if(w)w.postMessage("SKIP_WAITING");else location.reload()};
+}
+(function registerSW(){
+  try{
+    if(!("serviceWorker" in navigator))return;
+    if(!/^https:$/.test(location.protocol)&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname))return;
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      if(reg.waiting&&navigator.serviceWorker.controller)showUpdateBar(reg);
+      reg.addEventListener("updatefound",()=>{const nw=reg.installing;if(!nw)return;nw.addEventListener("statechange",()=>{if(nw.state==="installed"&&navigator.serviceWorker.controller)showUpdateBar(reg)})});
+      setInterval(()=>reg.update().catch(()=>{}),30*60000);
+    }).catch(()=>{});
+    let reloaded=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload()});
+  }catch(e){}
+})();
+
 boot();
 </script>
 

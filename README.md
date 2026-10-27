@@ -1,8 +1,18 @@
 # AETHER AI
 
-Your personal assistant dashboard. Plan your day, track your health and study, reach your career goals, build habits and plan social media posts. And you can talk to it.
+Your personal assistant app. Plan your day, track your health and study, improve your communication, reach your career goals, build habits and plan social media posts. Talk to it, and learn from three AI mentors.
 
-**Live demo:** https://muneeb1214-unsm.github.io/aether-ai/
+**Open the app:** https://muneeb1214-unsm.github.io/aether-ai/
+
+## Install it as an app
+
+AETHER is a Progressive Web App (PWA): it installs like a normal app, opens full screen with its own icon, works offline and updates itself.
+
+- **Android (Chrome):** open the link, tap **Install app** on the Home screen (or menu ⋮ → *Install app*).
+- **iPhone / iPad (Safari):** open the link, tap **Share** → **Add to Home Screen**.
+- **Windows / Mac (Chrome or Edge):** open the link, click the install icon in the address bar, or *Install app* in your profile menu.
+
+When a new version is published, the app shows **"New version ready → Update now"**. One tap and you have it.
 
 ## Features
 
@@ -11,12 +21,23 @@ Your personal assistant dashboard. Plan your day, track your health and study, r
 | Home | Greeting, day progress ring, key numbers, today's plan with a "Now" line, weekly chart, habits, upcoming posts and goals |
 | Schedule | Add tasks with date, time, type and repeat. Filter by Today, Tomorrow, Next 7 days or All. A pop-up and sound remind you on time |
 | Alerts | Alarms and reminders: once, every day, weekdays, or every few minutes/hours. Quick buttons (in 5, 15, 30 min, 1 hour). When an alert rings you get a full-screen pop-up, a repeating sound, Aether reads the message out loud, and you can tap **Got it** or **Snooze 5 min**. Also has **What's happening** (a feed of every reminder, alert, briefing and check-in, with an unread badge on the bell), **smart notifications** (heads-up before tasks, "did you finish?" nudges, spoken morning briefing and evening review) and **message check-ins** for Instagram, Facebook, LinkedIn, X and WhatsApp with one-tap links to each inbox |
-| Health | Tap glasses to log water, sleep slider, steps, exercise switch, mood, and 7-day charts with goal lines |
-| Study | 25-minute focus timer with a live ring, subjects with weekly goals, manual study log and a weekly chart |
+| Health | **Health Mentor** chatbot, tap glasses to log water, sleep slider, steps, exercise switch, mood, and 7-day charts with goal lines |
+| Study | **Study Buddy** chatbot, 25-minute focus timer with a live ring, subjects with weekly goals, manual study log and a weekly chart |
+| Communication | **Communication Coach** chatbot, a daily speaking challenge that measures your words per minute and filler words, word of the day, and your practice history |
 | Career | Big goals broken into small steps, with progress rings |
 | Habits | 7-day habit grid with streaks |
 | Social | Follower tracking with growth charts for Instagram, Facebook, LinkedIn, X and WhatsApp, plus a post planner |
 | WhatsApp | Save contacts, use ready-made templates, write messages with AI, schedule messages (once or every day). At the right time Aether reminds you and opens WhatsApp with the message ready |
+
+## AI mentors
+
+Each mentor is a chatbot you can type to or **talk** to (tap **Talk** for a hands-free spoken conversation, say "stop" to end).
+
+- **Study Buddy** (Study tab): explains any topic simply, quizzes you one question at a time, makes study plans, helps with focus and memory. Knows your subjects and study time.
+- **Health Mentor** (Health tab): sleep, water, food, exercise and stress, personalised with your last 7 days of health data. It is not a doctor: it never diagnoses or suggests medicines, and for emergencies it tells you to call your local emergency number (1122 in Pakistan).
+- **Communication Coach** (Communication tab): job interview practice, English correction, polite emails and messages, confidence and small talk role-plays. Tap **Get coach feedback** after a speaking challenge.
+
+Without an AI key the mentors give quick built-in tips. With smart AI on (see below) they can answer anything.
 
 ## Your profile
 
@@ -73,13 +94,37 @@ Speaking works in Chrome and Edge. Every browser can use the type box.
 
 ## How it works
 
-- One `index.html` file. No build step and no installs.
 - Your data is saved in your browser (`localStorage`) on the device you use.
-- Reminders work while the page is open. Tap the bell to allow browser notifications.
+- Reminders work while the app is open. Allow notifications in Alerts → Smart notifications.
+
+## Project structure
+
+| Path | What it is |
+| --- | --- |
+| `src/app.html` | The app's source: all screens, styles and logic. **Edit this file.** |
+| `build.sh` | Builds `index.html` from `src/app.html` and stamps the version into `sw.js` |
+| `index.html` | The built app (generated, don't edit by hand) |
+| `manifest.webmanifest` | App name, icons, colours and shortcuts for installing |
+| `sw.js` | Service worker: offline support and update detection |
+| `icons/` | App icons (192, 512, maskable, Apple touch, favicon) |
+
+## How to release an update
+
+1. Edit `src/app.html` and raise `APP_VERSION` (for example `2.0.0` → `2.1.0`).
+2. Run `./build.sh`.
+3. Commit and push. GitHub Pages publishes it in about a minute, and installed apps show **Update now**.
 
 ## Run locally
 
-Download the repo and open `index.html` in Chrome or Edge.
+```bash
+python -m http.server 8765
+```
+
+Then open http://localhost:8765 in Chrome or Edge.
+
+## Put it on the Google Play Store (optional)
+
+Go to [pwabuilder.com](https://www.pwabuilder.com), enter the app link, and download the Android package. It wraps this same app, so every update you push to GitHub reaches the Play Store app too.
 
 ## Roadmap
 
