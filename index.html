@@ -379,6 +379,19 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .nside{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .nside .del{width:26px;height:26px}
 .nitem .tlinks .btn{padding:5px 10px}
+/* habits */
+.habits{display:flex;flex-direction:column;gap:10px}
+.habit{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--surface-2)}
+.habit-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.habit-h b{flex:1;min-width:0;overflow-wrap:anywhere}
+.habit-h .flame{font-size:12px;white-space:nowrap}
+.hdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.hday{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:11px;font-weight:700;color:var(--muted);min-width:0}
+.hday i{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;transition:all .2s}
+.hday small{font-size:10px;font-weight:600}
+.hday.today{border-color:var(--a2);color:var(--ink)}
+.hday[aria-pressed="true"] i{background:var(--ok);border-color:var(--ok)}
+.hday[aria-pressed="true"] i::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
 /* share */
 .share-link{display:flex;gap:8px}
 .share-link .inp{flex:1;font-family:var(--f-mono);font-size:13px}
@@ -465,6 +478,52 @@ details{margin-bottom:10px}summary{cursor:pointer;font-weight:600;font-size:13px
   .toasts{top:calc(10px + env(safe-area-inset-top,0px))}
 }
 @media (max-width:600px){.card{padding:16px}.hero{padding:20px}.kpi .k-val{font-size:22px}.timer{font-size:32px}}
+/* phones: compact, two-up numbers, rows that wrap instead of squeezing, bigger touch targets */
+@media (max-width:520px){
+  .wrap{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}
+  .grid{gap:12px}
+  .card{padding:14px;border-radius:14px}
+  .card-h{flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .card-h h2{font-size:16px}
+  .page-head{margin-bottom:12px}
+  .page-head h1{font-size:22px}
+  .page-head p{font-size:13px}
+  .g4{grid-template-columns:1fr 1fr}
+  .kpi{flex-direction:column;align-items:flex-start;gap:8px;padding:12px}
+  .kpi .ring{width:44px!important;height:44px!important}
+  .kpi .ring svg{width:44px;height:44px}
+  .kpi .k-val{font-size:20px}
+  .hero{padding:18px}
+  .hero-in{display:block;position:relative}
+  .hero .ring{position:absolute;top:0;right:0;width:72px!important;height:72px!important}
+  .hero .eyebrow,.hero h1{padding-right:84px}
+  .hero .ring svg{width:72px;height:72px}
+  .hero .ring .lbl b{font-size:16px}
+  .hero .ring .lbl small{display:none}
+  .hero h1{font-size:22px}
+  .hero p{font-size:14px}
+  .hero-acts{gap:8px}
+  .btn-hero{padding:10px 14px;font-size:14px}
+  .callout{padding:12px 14px;gap:10px;font-size:13px}
+  .callout .btn{padding:8px 12px}
+  /* setting rows wrap their buttons under the text; task rows stay on one line */
+  .row:has(> .btn, > select, > input, > a.go-link, > form){flex-wrap:wrap;row-gap:8px}
+  .row:has(> .btn, > select, > input, > a.go-link, > form)>.grow{flex:1 1 170px}
+  .row{gap:8px}
+  .row .tag{font-size:0;gap:0;padding:5px}
+  .row .time{min-width:0;font-size:12px}
+  .acct form.add{flex-wrap:nowrap}
+  .check{width:28px;height:28px}
+  .del{width:36px;height:36px}
+  .seg{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .seg::-webkit-scrollbar{display:none}
+  .seg button{white-space:nowrap}
+  .mentor-h{gap:8px}
+  .mentor-h h2{font-size:15px}
+  .m-ava{width:38px;height:38px;border-radius:12px}
+  .modal-card{padding:16px}
+  .fab{width:52px;height:52px}
+}
 @media (min-width:1400px){.wrap{max-width:1360px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
@@ -950,11 +1009,12 @@ function vCareer(){
 }
 
 function vHabits(){
-  const days=last7();
+  const days=last7(),t=today();
   return `<div class="grid">
-    ${card("Your habits","Tap a box to mark it",`<div class="hgrid"><table><thead><tr><th>Habit</th>${days.map(d=>`<th>${dayLbl(d)}<br>${new Date(d+"T00:00").getDate()}</th>`).join("")}<th>Streak</th><th></th></tr></thead><tbody>
-      ${S.habits.map(x=>`<tr><td>${esc(x.name)}</td>${days.map(d=>`<td><button class="check" style="margin:auto" data-act="toggleHabit" data-id="${x.id}" data-d="${d}" aria-pressed="${!!(x.days&&x.days[d])}" aria-label="${esc(x.name)} on ${d}"></button></td>`).join("")}<td><span class="flame">${streak(x)} days</span></td><td>${del("delHabit",x.id)}</td></tr>`).join("")}
-      </tbody></table></div>${S.habits.length?"":`<div class="empty"><b>No habits yet</b>Add one below, like "Read for 20 minutes".</div>`}
+    ${card("Your habits","Tap a day to mark it",`<div class="habits">${S.habits.map(x=>`<div class="habit">
+      <div class="habit-h"><b>${esc(x.name)}</b><span class="flame">${streak(x)} day streak</span>${del("delHabit",x.id)}</div>
+      <div class="hdays">${days.map(d=>`<button class="hday ${d===t?"today":""}" data-act="toggleHabit" data-id="${x.id}" data-d="${d}" aria-pressed="${!!(x.days&&x.days[d])}" aria-label="${esc(x.name)} on ${fmtDay(d)}"><span>${dayLbl(d)}</span><i></i><small>${new Date(d+"T00:00").getDate()}</small></button>`).join("")}</div>
+    </div>`).join("")}</div>${S.habits.length?"":`<div class="empty"><b>No habits yet</b>Add one below, like "Read for 20 minutes".</div>`}
       <form class="add" data-form="habit" style="margin-top:12px"><input class="inp wide" id="hb-name" name="name" placeholder="New habit, e.g. Pray on time" required><button class="btn">${ic("plus")}Add habit</button></form>`)}
   </div>`;
 }
@@ -1962,7 +2022,7 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.7.1";
+const APP_VERSION="2.8.0";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://aetherai-com.netlify.app/";

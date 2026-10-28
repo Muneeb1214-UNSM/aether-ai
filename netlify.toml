@@ -46,3 +46,6 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "microphone=(self), camera=(), geolocation=()"
+    # Only AETHER's own page code and the two libraries it loads may run. This also keeps out the
+    # "Netlify" badge script that Netlify adds to free-plan sites (/.netlify/scripts/hud).
+    Content-Security-Policy = "script-src 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; worker-src 'self'; object-src 'none'; base-uri 'self'"
