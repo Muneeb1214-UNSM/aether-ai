@@ -357,7 +357,11 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .toast .go-link{background:rgba(127,127,127,.18);color:inherit;border-color:transparent}
 .go-link:hover{border-color:var(--a2)}
 
+.steps{margin:0 0 12px;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 .snd-help{padding:0 0 10px}.snd-help p{margin:6px 0 0}
+.nside{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.nside .del{width:26px;height:26px}
+.nitem .tlinks .btn{padding:5px 10px}
 /* share */
 .share-link{display:flex;gap:8px}
 .share-link .inp{flex:1;font-family:var(--f-mono);font-size:13px}
@@ -533,7 +537,8 @@ const P={
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/>',
   send:'<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
-  download:'<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>'
+  download:'<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+  check:'<path d="M5 12l5 5L20 7"/>'
 };
 const ic=(n,extra="")=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${P[n]}</svg>`;
 
@@ -619,7 +624,8 @@ async function boot(){
   }
   try{const v=localStorage.getItem("aether-view");if(v&&SECTIONS.some(s=>s.id===v))view=v}catch(e){}
   if(location.hash&&SECTIONS.some(s=>"#"+s.id===location.hash))view=location.hash.slice(1);
-  setSync();go(view);paintProfile();startAlerts();bgSyncSoon();setInterval(bgSyncSoon,6*3600000);
+  setSync();takeNativeEvents();go(view);paintProfile();startAlerts();bgSyncSoon();setInterval(bgSyncSoon,6*3600000);
+  if(NATIVE)document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&takeNativeEvents()){render()}});
   if(!S.profile)showOnboard();
   // Opened by tapping a background alert: show it full screen and read it out loud.
   try{const q=new URLSearchParams(location.search);if(q.get("say")){sayAlert(q.get("say"),q.get("sayb")||"");history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
@@ -956,6 +962,7 @@ function vWhatsApp(){
   const sel=find(S.wa.contacts,waDraft.to);const now=nowHM();
   const sched=sortT(S.wa.scheduled);
   return `<div class="grid g2">
+    ${waAutoCard()}
     <section class="card wa-hero rise span2"><div class="tip"><div class="tip-icon" style="background:rgba(255,255,255,.18)">${ic("wa")}</div><div><h2 style="font-size:19px">Your WhatsApp helper</h2>
       <p style="margin-top:6px">Save your contacts, write messages with AI, and schedule them. When it is time, Aether reminds you and opens WhatsApp with the message ready. You just tap <b>Send</b>.</p></div></div></section>
     ${card("Send a message","",`<form class="stack" data-form="waSend">
@@ -978,6 +985,17 @@ function vWhatsApp(){
   </div>`;
 }
 
+// Sending by itself needs the Android app and its WhatsApp helper (Accessibility) switched on.
+function waAutoCard(){
+  if(!NATIVE)return card("Send automatically",isAndroid()?"Android app":"",`<p class="meta" style="margin:0 0 10px">Want scheduled messages to send by themselves at the right time? That works in the AETHER Android app.${isAndroid()?"":" On a computer or iPhone, Aether reminds you and opens WhatsApp with the message ready."}</p>${isAndroid()?`<button class="btn" data-act="getAndroid">${ic("download")}Get Android app</button>`:""}`,"span2");
+  let on=false,wa=true;try{on=AetherNative.waAutoSendOn();wa=AetherNative.whatsappInstalled()}catch(e){}
+  if(!wa)return card("Send automatically","",`<p class="meta" style="margin:0">WhatsApp isn't installed on this phone, so messages can't be sent automatically.</p>`,"span2");
+  if(on)return card("Send automatically",`<span class="status posted">on</span>`,`<p class="meta" style="margin:0">Scheduled messages send by themselves at their time. If the phone is locked, AETHER sends them right after you unlock it, and tells you when each one is sent.</p>`,"span2");
+  return card("Send automatically",`<span class="status draft">off</span>`,`<p style="margin:0 0 10px">Turn this on once and your scheduled messages will send by themselves. AETHER opens the chat with your message and its WhatsApp helper taps Send.</p>
+    <ol class="steps"><li>Tap <b>Open settings</b>.</li><li>Find <b>AETHER WhatsApp helper</b> (under Installed apps or Downloaded apps) and turn it <b>On</b>.</li><li>If the switch is grey: open <b>App info</b> below, tap <b>⋮</b> at the top right, choose <b>Allow restricted settings</b>, then try again.</li></ol>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="waAutoOn">Open settings</button><button class="btn ghost" data-act="waAppInfo">App info</button></div>
+    <p class="note">The helper only works inside WhatsApp, only for messages you schedule here, and never reads your chats. Sending this way isn't an official WhatsApp feature, so use it for your own normal messages.</p>`,"span2");
+}
 function openSettings(){
   const m=document.getElementById("modal");m.hidden=false;const mode=aiMode();
   const st={claude:["var(--ok)","Smart AI is on. It is powered by Claude inside your Claude account."],key:["var(--ok)","Smart AI is on with your Claude API key."],basic:["var(--warm)","Basic mode. Aether understands simple commands. Add a key below to make it smarter."]}[mode];
@@ -1172,9 +1190,9 @@ function toast(title,body,link){
 const NTYPES={task:["Tasks","var(--c-work)","cal"],alert:["Alerts","var(--a3)","bell"],social:["Social","var(--c-social)","share"],whatsapp:["WhatsApp","#16a34a","wa"],brief:["Briefings","var(--a2)","spark"]};
 const INBOX={Instagram:"https://www.instagram.com/direct/inbox/",Facebook:"https://www.facebook.com/messages/",LinkedIn:"https://www.linkedin.com/messaging/",X:"https://x.com/messages",WhatsApp:"https://web.whatsapp.com/"};
 function sysNotif(title,body){if(bg.on||NATIVE)return;try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
-function logNotif(type,title,body,links){S.notifs.unshift({id:uid(),type,title,body:body||"",at:Date.now(),read:false,links:links||[]});S.notifs=S.notifs.slice(0,100);paintBadge();save()}
+function logNotif(type,title,body,links,tid){S.notifs.unshift({id:uid(),type,title,body:body||"",at:Date.now(),read:false,links:links||[],...(tid?{tid}:{})});S.notifs=S.notifs.slice(0,100);paintBadge();save()}
 function paintBadge(){const b=document.getElementById("bellBadge");if(!b)return;const n=S.notifs.filter(x=>!x.read).length;b.textContent=n>99?"99+":n;b.hidden=!n}
-function notify(title,body,link,type="task",say){const links=link?(Array.isArray(link)?link:[link]):[];logNotif(type,title,body,links);toast(title,body,links);beep();speak(say||title);sysNotif(title,body)}
+function notify(title,body,link,type="task",say,tid){const links=link?(Array.isArray(link)?link:[link]):[];logNotif(type,title,body,links,tid);toast(title,body,links);beep();speak(say||title);sysNotif(title,body)}
 const toMin=hm=>{const[h,m]=hm.split(":").map(Number);return h*60+m};
 function briefingText(kind){
   const t=today(),tt=todayTasks(),done=tt.filter(k=>k.done),left=tt.filter(k=>!k.done),h=H(),name=firstName();
@@ -1203,9 +1221,9 @@ function checkAlerts(){
   const due=x=>x.time&&x.time<=hm&&(x.time>=since||since>hm);
   const ns=S.nset,nowMin=toMin(hm),win=tm=>nowMin>=toMin(tm)&&nowMin<toMin(tm)+180;
   for(const k of S.tasks){if(k.done||k.date!==t||!k.time)continue;const tm=toMin(k.time);
-    if(ns.before>0&&!k.pre&&!k.notified&&nowMin>=tm-ns.before&&nowMin<tm){notify(`Coming up in ${tm-nowMin} min: ${k.title}`,fmtTime(k.time)+" · "+(CATS[k.cat]||""),null,"task");k.pre=true;ch=true}
-    if(!k.notified&&due(k)){notify("Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||""),null,"task");k.notified=true;ch=true}
-    if(ns.nudge&&!k.nudged&&nowMin>=tm+60&&nowMin<tm+240){notify(`Did you finish "${k.title}"?`,`It was planned for ${fmtTime(k.time)}. Mark it done in Schedule.`,null,"task");k.nudged=true;ch=true}}
+    if(ns.before>0&&!k.pre&&!k.notified&&nowMin>=tm-ns.before&&nowMin<tm){notify(`Coming up in ${tm-nowMin} min: ${k.title}`,fmtTime(k.time)+" · "+(CATS[k.cat]||""),null,"task",(firstName()?firstName()+", ":"")+`in ${tm-nowMin} minutes you have ${k.title}. Get ready.`,k.id);k.pre=true;ch=true}
+    if(!k.notified&&due(k)){notify("Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||""),null,"task",(firstName()?firstName()+", ":"")+`it's time for ${k.title}. Let's do it now!`,k.id);k.notified=true;ch=true}
+    if(ns.nudge&&!k.nudged&&nowMin>=tm+60&&nowMin<tm+240){notify(`Did you finish "${k.title}"?`,`It was planned for ${fmtTime(k.time)}.`,null,"task",(firstName()?firstName()+", ":"")+`did you finish ${k.title}?`,k.id);k.nudged=true;ch=true}}
   for(const p of S.social.posts){if(p.status!=="scheduled"||p.notified||p.date!==t||!due(p))continue;notify("Time to post on "+p.platform,p.text.slice(0,80),INBOX[p.platform]?{href:INBOX[p.platform].replace(/(direct\/inbox|messages|messaging)\/?$/,""),label:"Open "+p.platform}:null,"social");p.notified=true;ch=true}
   for(const m of S.wa.scheduled){if(m.sent||m.notified||m.date!==t||!due(m))continue;const c=find(S.wa.contacts,m.to);if(!c)continue;
     notify("WhatsApp message for "+c.name,m.text.slice(0,80),{href:waLink(c.phone,m.text),label:"Send now",wa:true},"whatsapp");m.notified=true;ch=true}
@@ -1295,6 +1313,12 @@ document.addEventListener("click",e=>{
     case"delWaC":S.wa.contacts=S.wa.contacts.filter(c=>c.id!==id);break;
     case"readNotif":{if(e.target.closest("a"))return;const x=find(S.notifs,id);if(x&&!x.read){x.read=true;paintBadge();b.classList.remove("unread");save()}return}
     case"readAll":S.notifs.forEach(x=>x.read=true);paintBadge();break;
+    case"delNotif":S.notifs=S.notifs.filter(x=>x.id!==id);paintBadge();break;
+    case"clearNotifs":if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Tap again to clear all";setTimeout(()=>{b.dataset.sure="";b.textContent="Clear all"},4000);return}S.notifs=[];paintBadge();toast("Notifications cleared","Your tasks and alerts are not changed.");break;
+    case"waAutoOn":try{AetherNative.openAccessibilitySettings()}catch(_){}return;
+    case"waAppInfo":try{AetherNative.openAppInfo()}catch(_){}return;
+    case"nTaskDone":{const n=find(S.notifs,id),k=n&&find(S.tasks,n.tid);if(k){k.done=true;n.read=true;toast("Nice work!",k.title+" is done.")}paintBadge();break}
+    case"nTaskDel":{const n=find(S.notifs,id),k=n&&find(S.tasks,n.tid);if(k){S.tasks=S.tasks.filter(x=>x.id!==k.id);n.read=true;toast("Task deleted",k.title)}paintBadge();break}
     case"nFilter":nFilter=id;render();return;
     case"hideApk":try{localStorage.setItem("aether-hide-apk","1")}catch(_){}render();return;
     case"nativeTest":try{AetherNative.testAlarm();toast("Test alarm in 10 seconds","Lock your phone now. It will ring and Aether will read it out loud.")}catch(_){}return;
@@ -1703,10 +1727,15 @@ function checkCustomAlerts(){
 let nFilter="all";
 function timeAgo(at){const s=Math.round((Date.now()-at)/1000);if(s<60)return"just now";const m=Math.round(s/60);if(m<60)return m+" min ago";const h=Math.round(m/60);if(h<24)return h+"h ago";return fmtDay(ymd(new Date(at)))}
 function feedItems(list){return list.map(n=>{const[,col,icn]=NTYPES[n.type]||NTYPES.task;
-  return `<div class="nitem ${n.read?"":"unread"}" data-act="readNotif" data-id="${n.id}"><span class="nicon" style="background:${col}">${ic(icn)}</span><div class="grow"><b>${esc(n.title)}</b>${n.body?`<div class="meta">${esc(n.body)}</div>`:""}${n.links&&n.links.length?`<div class="tlinks">${n.links.map(goA).join("")}</div>`:""}</div><span class="meta" style="white-space:nowrap">${timeAgo(n.at)}</span></div>`}).join("")}
+  return `<div class="nitem ${n.read?"":"unread"}" data-act="readNotif" data-id="${n.id}"><span class="nicon" style="background:${col}">${ic(icn)}</span><div class="grow"><b>${esc(n.title)}</b>${n.body?`<div class="meta">${esc(n.body)}</div>`:""}${n.links&&n.links.length?`<div class="tlinks">${n.links.map(goA).join("")}</div>`:""}${taskBtns(n)}</div><div class="nside"><span class="meta" style="white-space:nowrap">${timeAgo(n.at)}</span><button class="del" data-act="delNotif" data-id="${n.id}" aria-label="Delete notification" title="Delete notification">${ic("x")}</button></div></div>`}).join("")}
+// Your choice from a task notification: mark the task done, or delete it.
+function taskBtns(n){const k=n.tid&&find(S.tasks,n.tid);if(!n.tid)return"";
+  if(!k)return`<div class="meta" style="margin-top:6px">Task deleted</div>`;
+  if(k.done)return`<div class="meta" style="margin-top:6px;color:var(--ok)">Done ✓</div>`;
+  return`<div class="tlinks"><button class="btn sm" data-act="nTaskDone" data-id="${n.id}">${ic("check","style='width:14px;height:14px'")}Done</button><button class="btn ghost sm" data-act="nTaskDel" data-id="${n.id}">${ic("trash","style='width:14px;height:14px'")}Delete task</button></div>`}
 function vFeed(){
   const list=S.notifs.filter(n=>nFilter==="all"||n.type===nFilter),unread=S.notifs.filter(n=>!n.read).length;
-  return `<section class="card rise span2"><div class="card-h"><h2>What's happening</h2><div style="display:flex;gap:8px;align-items:center"><span class="sub">${unread} new</span>${unread?`<button class="btn ghost sm" data-act="readAll">Mark all as read</button>`:""}</div></div>
+  return `<section class="card rise span2"><div class="card-h"><h2>What's happening</h2><div style="display:flex;gap:8px;align-items:center"><span class="sub">${unread} new</span>${unread?`<button class="btn ghost sm" data-act="readAll">Mark all as read</button>`:""}${S.notifs.length?`<button class="btn ghost sm" data-act="clearNotifs">Clear all</button>`:""}</div></div>
     <div class="seg" role="group" aria-label="Show" style="margin-bottom:10px">${[["all","All"],...Object.entries(NTYPES).map(([k,v])=>[k,v[0]])].map(([k,v])=>`<button data-act="nFilter" data-id="${k}" aria-pressed="${nFilter===k}">${v}</button>`).join("")}</div>
     <div class="feed">${feedItems(list.slice(0,30))||`<div class="empty"><b>Nothing yet</b>Task reminders, alerts, briefings and message check-ins will show up here.</div>`}</div></section>`;
 }
@@ -1819,24 +1848,41 @@ async function apiBase(){
 }
 const b64u=s=>{const p="=".repeat((4-s.length%4)%4);const raw=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0))};
 // Everything that should ring in the next 7 days, as one flat list the server can check each minute.
+// What Aether says for a day's plan, used by the morning briefing alarm.
+function planText(date){
+  const tt=sortT(S.tasks.filter(k=>k.date===date&&!k.done)),name=firstName();
+  if(!tt.length)return `Good morning${name?", "+name:""}! You have no tasks planned for today. Have a great day!`;
+  return `Good morning${name?", "+name:""}! Today you have ${tt.length} task${tt.length===1?"":"s"}: `+tt.slice(0,5).map(k=>k.title+(k.time?" at "+fmtTime(k.time):"")).join(", ")+". Have a great day!";
+}
+function eveningText(date){
+  const tt=S.tasks.filter(k=>k.date===date),left=tt.filter(k=>!k.done),name=firstName();
+  return `Good evening${name?", "+name:""}. `+(left.length?`You still have ${left.length} task${left.length===1?"":"s"} left: ${left.slice(0,3).map(k=>k.title).join(", ")}. Mark them done in AETHER or move them to tomorrow.`:"All your tasks are done. Great work today!");
+}
+// Everything that should ring in the next 7 days, as one flat list for the server or the phone's alarms.
+// Each item also carries the sentence Aether should say, and what the alarm's buttons act on.
 function buildPushItems(){
-  const now=Date.now(),end=now+7*864e5,items=[],ns=S.nset;
-  const add=(k,at,title,body,url)=>{if(at>now&&at<=end&&items.length<480)items.push({k,at,title,body,url})};
+  const now=Date.now(),end=now+7*864e5,items=[],ns=S.nset,name=firstName(),hi=name?name+", ":"";
+  const add=(k,at,title,body,url,extra)=>{if(at>now&&at<=end&&items.length<480)items.push({k,at,title,body,url,...(extra||{})})};
   const when=(date,hm)=>new Date(date+"T"+hm).getTime();
   for(const a of S.alerts){if(!a.on||!a.at)continue;let t=a.at,i=0;
-    while(t<=end&&i<200){add(`a${a.id}-${t}`,t,a.text,a.rep==="once"?"AETHER alert":(a.rep==="interval"?`Every ${a.every} min`:REP_LABEL[a.rep])+" · AETHER alert","./#alerts");
+    while(t<=end&&i<200){add(`a${a.id}-${t}`,t,a.text,a.rep==="once"?"AETHER alert":(a.rep==="interval"?`Every ${a.every} min`:REP_LABEL[a.rep])+" · AETHER alert","./#alerts",
+        {kind:"alert",say:`${hi}reminder: ${a.text}.`});
       if(a.rep==="once")break;if(a.rep==="interval")t+=Math.max(1,a.every)*60000;else{t+=864e5;if(a.rep==="weekdays")while([0,6].includes(new Date(t).getDay()))t+=864e5}i++}}
   for(const k of S.tasks){if(k.done||!k.time||!k.date)continue;const T=when(k.date,k.time);
-    add("t"+k.id,T,"Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||"Task"),"./#schedule");
-    if(ns.before>0)add("tp"+k.id,T-ns.before*60000,`Coming up in ${ns.before} min: ${k.title}`,"Starts at "+fmtTime(k.time),"./#schedule")}
+    add("t"+k.id,T,"Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||"Task"),"./#schedule",{kind:"task",tid:k.id,say:`${hi}it's time for ${k.title}. Let's do it now!`});
+    if(ns.before>0)add("tp"+k.id,T-ns.before*60000,`Coming up in ${ns.before} min: ${k.title}`,"Starts at "+fmtTime(k.time),"./#schedule",
+      {kind:"taskpre",tid:k.id,say:`${hi}in ${ns.before} minutes you have ${k.title}. Get ready.`})}
   for(const m of S.wa.scheduled){if(m.sent||!m.time)continue;const c=find(S.wa.contacts,m.to);if(!c)continue;
     for(let d=0;d<(m.rep==="daily"?7:1);d++){const date=m.rep==="daily"?addDays(m.date<today()?today():m.date,d):m.date;
-      add(`w${m.id}-${date}`,when(date,m.time),"WhatsApp message for "+c.name,m.text.slice(0,90)+" · Tap to send",waLink(c.phone,m.text))}}
-  for(const p of S.social.posts){if(p.status!=="scheduled"||!p.time)continue;add("p"+p.id,when(p.date,p.time),"Time to post on "+p.platform,p.text.slice(0,100),"./#social")}
+      add(`w${m.id}-${date}`,when(date,m.time),"WhatsApp message for "+c.name,m.text.slice(0,90)+" · Tap to send",waLink(c.phone,m.text),
+        {kind:"wa",name:c.name,phone:digits(c.phone),text:m.text,say:`${hi}it's time to send your WhatsApp message to ${c.name}.`})}}
+  for(const p of S.social.posts){if(p.status!=="scheduled"||!p.time)continue;add("p"+p.id,when(p.date,p.time),"Time to post on "+p.platform,p.text.slice(0,100),"./#social",
+    {kind:"post",say:`${hi}it's time to post on ${p.platform}.`})}
   for(let d=0;d<7;d++){const date=addDays(today(),d);
-    if(ns.morning.on)add("bm"+date,when(date,ns.morning.time),"Your morning briefing","Tap to see your plan for today.","./#home");
-    if(ns.evening.on)add("be"+date,when(date,ns.evening.time),"Your evening review","Tap to see what you finished today.","./#home")}
-  if(ns.social.on)for(let d=0;d<7;d++){const date=addDays(today(),d);for(const tm of ns.social.times)add(`s${date}${tm}`,when(date,tm),"Time to check your messages","Check "+ns.social.plats.join(", ")+".","./#alerts")}
+    if(ns.morning.on)add("bm"+date,when(date,ns.morning.time),"Your morning briefing","Tap to see your plan for today.","./#home",{kind:"brief",say:planText(date)});
+    if(ns.evening.on)add("be"+date,when(date,ns.evening.time),"Your evening review","Tap to see what you finished today.","./#home",{kind:"brief",say:eveningText(date)})}
+  if(ns.social.on)for(let d=0;d<7;d++){const date=addDays(today(),d);for(const tm of ns.social.times)add(`s${date}${tm}`,when(date,tm),"Time to check your messages","Check "+ns.social.plats.join(", ")+".","./#alerts",
+    {kind:"check",say:`${hi}time to check your messages on ${ns.social.plats.join(", ")}.`})}
   return items.sort((a,b)=>a.at-b.at);
 }
 async function syncBg(sub){
@@ -1848,6 +1894,19 @@ async function syncBg(sub){
   if(view==="alerts"){const el=document.querySelector(".bg-row .meta");if(el)el.textContent="On. Alerts reach your phone even when AETHER is closed. "+bg.status+"."}
 }
 let bgTimer=null;
+// Done / Delete taps on phone alarms and WhatsApp messages sent by the helper, while AETHER was closed.
+function takeNativeEvents(){
+  if(!NATIVE)return false;let ev=[];try{ev=JSON.parse(AetherNative.takeEvents()||"[]")}catch(e){}
+  if(!ev.length)return false;let msg=[];
+  for(const e of ev){
+    if(e.type==="done"){const k=find(S.tasks,e.tid);if(k&&!k.done){k.done=true;msg.push(`Done: ${k.title}`)}}
+    else if(e.type==="delete"){const k=find(S.tasks,e.tid);if(k){S.tasks=S.tasks.filter(x=>x.id!==k.id);msg.push(`Deleted: ${k.title}`)}}
+    else if(e.type==="wa-sent"){const mm=String(e.k||"").match(/^w(.+)-(\d{4}-\d{2}-\d{2})$/);const m=mm&&find(S.wa.scheduled,mm[1]);
+      if(m){const c=find(S.wa.contacts,m.to);if(m.rep==="daily"){m.date=addDays(mm[2],1);m.notified=false}else m.sent=true;
+        logNotif("whatsapp","WhatsApp sent to "+(c?c.name:"your contact"),m.text.slice(0,90));msg.push("WhatsApp sent to "+(c?c.name:"your contact"))}}
+  }
+  save();if(msg.length)toast("While AETHER was closed",msg.slice(0,3).join(" · "));return true;
+}
 function bgSyncSoon(){
   if(!bg.on)return;clearTimeout(bgTimer);
   if(NATIVE){bgTimer=setTimeout(()=>{try{const n=AetherNative.scheduleAlarms(JSON.stringify(buildPushItems()));bg.status=`${n} alarm${n===1?"":"s"} set on this phone`}catch(e){}},800);return}
@@ -1882,7 +1941,7 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.6.0";
+const APP_VERSION="2.7.0";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://aetherai-com.netlify.app/";

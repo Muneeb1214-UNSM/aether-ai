@@ -12,6 +12,8 @@ The Android app adds what a website can't do: **alarms that ring and read your a
 
 To install: open the link on your Android phone, open the downloaded `AETHER-AI.apk`, and allow installing from your browser if Android asks. On first open, allow notifications, and allow the microphone when you first talk to Aether.
 
+- **WhatsApp messages send by themselves** at their scheduled time. Turn on *AETHER WhatsApp helper* once (WhatsApp tab → Send automatically → Open settings). If the phone is locked, AETHER sends right after you unlock it and tells you when each message is sent. This uses Android Accessibility, not an official WhatsApp feature.
+- **Task alarms speak like a person** ("Muneeb, it's time for Gym. Let's do it now!") and have **Done**, **Snooze 5 min** and **Delete task** buttons. Whatever you choose is saved in the app.
 - Alerts, task reminders, briefings and check-ins become exact phone alarms (they survive restarts). Each one plays the alert sound at alarm volume, then Aether says it twice, with **Snooze 5 min**, **Got it** and **Send on WhatsApp** buttons.
 - Voice assistant, Study Buddy, Health Mentor and Communication Coach work inside the app using the phone's own speech recognition and voice.
 - The app loads the live AETHER site, so most updates arrive without downloading a new APK. Data in the app is separate from data in Chrome.
