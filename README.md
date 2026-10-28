@@ -2,9 +2,23 @@
 
 Your personal assistant app. Plan your day, track your health and study, improve your communication, reach your career goals, build habits and plan social media posts. Talk to it, and learn from three AI mentors.
 
-**Open the app:** https://muneeb1214-unsm.github.io/aether-ai/
+**Open the app:** https://aetherai-com.netlify.app (also on GitHub Pages: https://muneeb1214-unsm.github.io/aether-ai/)
 
-## Install it as an app
+## Android app (APK)
+
+**[Download AETHER for Android](https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI.apk)**
+
+The Android app adds what a website can't do: **alarms that ring and read your alerts out loud, even when the app is closed and the phone is locked.**
+
+To install: open the link on your Android phone, open the downloaded `AETHER-AI.apk`, and allow installing from your browser if Android asks. On first open, allow notifications, and allow the microphone when you first talk to Aether.
+
+- Alerts, task reminders, briefings and check-ins become exact phone alarms (they survive restarts). Each one plays the alert sound at alarm volume, then Aether says it twice, with **Snooze 5 min**, **Got it** and **Send on WhatsApp** buttons.
+- Voice assistant, Study Buddy, Health Mentor and Communication Coach work inside the app using the phone's own speech recognition and voice.
+- The app loads the live AETHER site, so most updates arrive without downloading a new APK. Data in the app is separate from data in Chrome.
+
+The APK is built by GitHub Actions (`.github/workflows/android.yml`) whenever `android/` changes, and published under [Releases](https://github.com/Muneeb1214-UNSM/aether-ai/releases). Source: `android/` (Java, no extra frameworks).
+
+## Install it as a web app
 
 AETHER is a Progressive Web App (PWA): it installs like a normal app, opens full screen with its own icon, works offline and updates itself.
 
