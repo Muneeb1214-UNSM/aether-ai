@@ -27,6 +27,15 @@ android {
         }
     }
 
+    // Two editions with the same app id, so either one updates the other:
+    //   standard - everything except auto-sending WhatsApp; installs without Play Protect blocking it
+    //   whatsapp - adds the Accessibility helper that sends scheduled WhatsApp messages by itself
+    flavorDimensions 'edition'
+    productFlavors {
+        standard { dimension 'edition' }
+        whatsapp { dimension 'edition' }
+    }
+
     buildTypes {
         release {
             minifyEnabled false

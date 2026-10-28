@@ -1,6 +1,7 @@
-# Builds the AETHER Android app (APK) and publishes it as a GitHub release.
-# Download link that always points to the newest APK:
+# Builds the AETHER Android app (two editions) and publishes them as a GitHub release.
+# Download links that always point to the newest APKs:
 #   https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI.apk
+#   https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI-WhatsApp.apk
 name: Android APK
 
 on:
@@ -31,14 +32,28 @@ jobs:
         with:
           gradle-version: "8.7"
 
-      - name: Build signed APK
+      - name: Build signed APKs
         env:
           VERSION_CODE: ${{ github.run_number }}
           VERSION_NAME: 1.0.${{ github.run_number }}
-        run: gradle -p android assembleRelease --no-daemon --stacktrace
+        run: gradle -p android assembleStandardRelease assembleWhatsappRelease --no-daemon --stacktrace
 
-      - name: Rename APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk AETHER-AI.apk
+      - name: Rename APKs
+        run: |
+          cp android/app/build/outputs/apk/standard/release/app-standard-release.apk AETHER-AI.apk
+          cp android/app/build/outputs/apk/whatsapp/release/app-whatsapp-release.apk AETHER-AI-WhatsApp.apk
+
+      - name: Check signatures and contents
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          for f in AETHER-AI.apk AETHER-AI-WhatsApp.apk; do
+            echo "== $f"
+            "$BT/apksigner" verify --verbose --print-certs "$f" | grep -E "Verifies|v1 scheme|v2 scheme|v3 scheme|SHA-256"
+            "$BT/aapt2" dump badging "$f" | grep -E "^package|sdkVersion|targetSdkVersion"
+          done
+          echo "== Accessibility helper only in the WhatsApp edition:"
+          "$BT/aapt2" dump xmltree AETHER-AI.apk --file AndroidManifest.xml | grep -c BIND_ACCESSIBILITY_SERVICE || true
+          "$BT/aapt2" dump xmltree AETHER-AI-WhatsApp.apk --file AndroidManifest.xml | grep -c BIND_ACCESSIBILITY_SERVICE
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
@@ -46,10 +61,12 @@ jobs:
           tag_name: android-v1.0.${{ github.run_number }}
           name: AETHER AI for Android 1.0.${{ github.run_number }}
           make_latest: "true"
-          files: AETHER-AI.apk
+          files: |
+            AETHER-AI.apk
+            AETHER-AI-WhatsApp.apk
           body: |
-            **Install:** download `AETHER-AI.apk` below on your Android phone, open it, and allow installing from your browser if Android asks.
+            **Which one?**
+            - **AETHER-AI.apk** (recommended): alarms that speak, voice assistant, mentors, Done / Delete task buttons. Installs normally.
+            - **AETHER-AI-WhatsApp.apk**: everything above, plus scheduled WhatsApp messages that send by themselves. It uses Android Accessibility, so Google Play Protect may block it.
 
-            - Alarms ring and Aether reads alerts out loud, even when the app is closed and the phone is locked
-            - Voice assistant, Study Buddy, Health Mentor and Communication Coach work inside the app
-            - The app always shows the latest AETHER, so most updates arrive without a new download
+            **Install:** download on your Android phone, open the file, and allow installing from your browser if Android asks. If Play Protect warns about an unknown developer, tap **More details → Install anyway**.

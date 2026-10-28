@@ -57,18 +57,5 @@
             android:name=".AlertService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
-
-        <service
-            android:name=".WaAccessibilityService"
-            android:exported="true"
-            android:label="@string/wa_service_label"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/wa_service" />
-        </service>
     </application>
 </manifest>

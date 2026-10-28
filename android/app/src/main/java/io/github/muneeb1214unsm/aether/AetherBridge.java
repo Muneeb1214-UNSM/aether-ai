@@ -128,6 +128,17 @@ final class AetherBridge {
         return WaSender.whatsappPackage(act) != null;
     }
 
+    /** False in the standard edition, which leaves out the WhatsApp helper. */
+    @JavascriptInterface
+    public boolean hasWaHelper() {
+        try {
+            act.getPackageManager().getServiceInfo(new android.content.ComponentName(act, WaAccessibilityService.class), 0);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @JavascriptInterface
     public boolean waAutoSendOn() {
         return WaSender.serviceOn(act);
