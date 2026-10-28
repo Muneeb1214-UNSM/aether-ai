@@ -1,0 +1,55 @@
+# Builds the AETHER Android app (APK) and publishes it as a GitHub release.
+# Download link that always points to the newest APK:
+#   https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI.apk
+name: Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # Only the main repo publishes releases (not the Netlify copy).
+    if: github.repository == 'Muneeb1214-UNSM/aether-ai'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build signed APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+        run: gradle -p android assembleRelease --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk AETHER-AI.apk
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-v1.0.${{ github.run_number }}
+          name: AETHER AI for Android 1.0.${{ github.run_number }}
+          make_latest: "true"
+          files: AETHER-AI.apk
+          body: |
+            **Install:** download `AETHER-AI.apk` below on your Android phone, open it, and allow installing from your browser if Android asks.
+
+            - Alarms ring and Aether reads alerts out loud, even when the app is closed and the phone is locked
+            - Voice assistant, Study Buddy, Health Mentor and Communication Coach work inside the app
+            - The app always shows the latest AETHER, so most updates arrive without a new download

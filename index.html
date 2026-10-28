@@ -667,7 +667,7 @@ document.getElementById("obForm").onsubmit=e=>{
 };
 const menu=document.getElementById("menu"),avatarBtn=document.getElementById("avatarBtn");
 avatarBtn.onclick=e=>{e.stopPropagation();const open=menu.hidden;menu.hidden=!open;avatarBtn.setAttribute("aria-expanded",open);
-  if(open){menu.innerHTML=`<div class="who"><b></b><span></span></div><button data-act="editProfile">${ic("user")}Edit profile</button><button data-act="openSettings">${ic("spark")}AI settings</button>${!isApp()?`<button data-act="installApp">${ic("download")}Install app</button>`:""}<button data-act="shareApp">${ic("share")}Share with friends</button><button data-act="signOut">${ic("out")}Sign out</button><div class="meta" style="padding:8px 12px 4px">AETHER AI · version ${APP_VERSION}</div>`;
+  if(open){menu.innerHTML=`<div class="who"><b></b><span></span></div><button data-act="editProfile">${ic("user")}Edit profile</button><button data-act="openSettings">${ic("spark")}AI settings</button>${!NATIVE?`<button data-act="getAndroid">${ic("download")}Get Android app</button>`:""}${!isApp()?`<button data-act="installApp">${ic("download")}Install web app</button>`:""}<button data-act="shareApp">${ic("share")}Share with friends</button><button data-act="signOut">${ic("out")}Sign out</button><div class="meta" style="padding:8px 12px 4px">AETHER AI · version ${APP_VERSION}</div>`;
     menu.querySelector(".who b").textContent=(S.profile&&S.profile.name)||"Guest";menu.querySelector(".who span").textContent=(S.profile&&S.profile.email)||""}};
 document.addEventListener("click",e=>{if(!menu.hidden&&!e.target.closest("#menu,#avatarBtn"))menu.hidden=true},true);
 
@@ -830,7 +830,8 @@ function vHome(){
   const posts=sortT(S.social.posts.filter(p=>p.status!=="posted"&&p.date>=t)).slice(0,3);
   const days=last7();const doneByDay=days.map(d=>S.tasks.filter(k=>k.date===d&&k.done).length);
   return `${isEmpty()?`<div class="callout rise" style="margin-bottom:16px"><p><b>New here?</b> Load sample data to see how AETHER works. You can remove it with one click later. Or tap the round button and say <b>"help"</b>.</p><button class="btn" data-act="loadExample">Show sample data</button></div>`:""}
-  ${canOfferInstall()?`<div class="callout rise" style="margin-bottom:16px"><p>${ic("download","style='width:16px;height:16px;vertical-align:-3px'")} <b>Get the AETHER app.</b> Install it on your phone or computer. It opens full screen, works offline and updates itself.</p><div style="display:flex;gap:8px"><button class="btn" data-act="installApp">Install app</button><button class="btn ghost sm" data-act="hideInstall">Not now</button></div></div>`:""}
+  ${isAndroid()&&!NATIVE&&!hidden("apk")?`<div class="callout rise" style="margin-bottom:16px"><p>${ic("download","style='width:16px;height:16px;vertical-align:-3px'")} <b>Get the AETHER Android app.</b> Alarms ring and Aether reads your alerts out loud, even when the phone is locked.</p><div style="display:flex;gap:8px"><button class="btn" data-act="getAndroid">Download app</button><button class="btn ghost sm" data-act="hideApk">Not now</button></div></div>`:""}
+  ${canOfferInstall()&&!isAndroid()?`<div class="callout rise" style="margin-bottom:16px"><p>${ic("download","style='width:16px;height:16px;vertical-align:-3px'")} <b>Get the AETHER app.</b> Install it on your phone or computer. It opens full screen, works offline and updates itself.</p><div style="display:flex;gap:8px"><button class="btn" data-act="installApp">Install app</button><button class="btn ghost sm" data-act="hideInstall">Not now</button></div></div>`:""}
   <section class="card hero rise"><div class="hero-in"><div>
     <div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div>
     <h1 style="margin-top:6px">${greet}${firstName()?", "+esc(firstName()):""}!</h1>
@@ -1187,7 +1188,7 @@ function toast(title,body,link){
 /* notification center: everything Aether tells you is also kept in a feed */
 const NTYPES={task:["Tasks","var(--c-work)","cal"],alert:["Alerts","var(--a3)","bell"],social:["Social","var(--c-social)","share"],whatsapp:["WhatsApp","#16a34a","wa"],brief:["Briefings","var(--a2)","spark"]};
 const INBOX={Instagram:"https://www.instagram.com/direct/inbox/",Facebook:"https://www.facebook.com/messages/",LinkedIn:"https://www.linkedin.com/messaging/",X:"https://x.com/messages",WhatsApp:"https://web.whatsapp.com/"};
-function sysNotif(title,body){if(bg.on)return;try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
+function sysNotif(title,body){if(bg.on||NATIVE)return;try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
 function logNotif(type,title,body,links){S.notifs.unshift({id:uid(),type,title,body:body||"",at:Date.now(),read:false,links:links||[]});S.notifs=S.notifs.slice(0,100);paintBadge();save()}
 function paintBadge(){const b=document.getElementById("bellBadge");if(!b)return;const n=S.notifs.filter(x=>!x.read).length;b.textContent=n>99?"99+":n;b.hidden=!n}
 function notify(title,body,link,type="task",say){const links=link?(Array.isArray(link)?link:[link]):[];logNotif(type,title,body,links);toast(title,body,links);beep();speak(say||title);sysNotif(title,body)}
@@ -1214,7 +1215,8 @@ function socialCheck(){
   notify("Time to check your messages","Check "+plats.join(", ")+" for new messages and notifications.",plats.map(p=>({href:INBOX[p],label:p})),"social");
 }
 function checkAlerts(){
-  const t=today(),hm=nowHM(),d=new Date(Date.now()-30*60000),since=pad(d.getHours())+":"+pad(d.getMinutes());let ch=false;
+  // In the Android app, phone alarms already rang for anything older than a minute.
+  const t=today(),hm=nowHM(),d=new Date(Date.now()-(NATIVE?60000:30*60000)),since=pad(d.getHours())+":"+pad(d.getMinutes());let ch=false;
   const due=x=>x.time&&x.time<=hm&&(x.time>=since||since>hm);
   const ns=S.nset,nowMin=toMin(hm),win=tm=>nowMin>=toMin(tm)&&nowMin<toMin(tm)+180;
   for(const k of S.tasks){if(k.done||k.date!==t||!k.time)continue;const tm=toMin(k.time);
@@ -1311,6 +1313,11 @@ document.addEventListener("click",e=>{
     case"readNotif":{if(e.target.closest("a"))return;const x=find(S.notifs,id);if(x&&!x.read){x.read=true;paintBadge();b.classList.remove("unread");save()}return}
     case"readAll":S.notifs.forEach(x=>x.read=true);paintBadge();break;
     case"nFilter":nFilter=id;render();return;
+    case"hideApk":try{localStorage.setItem("aether-hide-apk","1")}catch(_){}render();return;
+    case"nativeTest":try{AetherNative.testAlarm();toast("Test alarm in 10 seconds","Lock your phone now. It will ring and Aether will read it out loud.")}catch(_){}return;
+    case"nativeExact":try{AetherNative.openExactAlarmSettings()}catch(_){}return;
+    case"nativeNotif":try{AetherNative.openNotificationSettings()}catch(_){}return;
+    case"getAndroid":menu.hidden=true;location.href=APK_URL;toast("Downloading AETHER for Android","Open the downloaded file to install. Android may ask you to allow installs from your browser.");return;
     case"bgOn":enableBg(b);return;
     case"bgTest":testBg(b);return;
     case"nsToggle":{if(id==="bg"){disableBg();return}const ns=S.nset;if(id==="nudge")ns.nudge=!ns.nudge;else ns[id].on=!ns[id].on;break}
@@ -1705,7 +1712,7 @@ function sayAlert(title,body){
 document.getElementById("alertSnooze").onclick=()=>{const x=alertQueue.shift();addAlert({text:x.text,at:Date.now()+5*60000,rep:"once"});toast("Snoozed","I will remind you again in 5 minutes.");showNextAlert()};
 function checkCustomAlerts(){
   const now=Date.now();let ch=false;
-  for(const a of S.alerts){if(!a.on||!a.at||a.at>now)continue;fireAlert(a,now-a.at>3*60000);
+  for(const a of S.alerts){if(!a.on||!a.at||a.at>now)continue;if(!(NATIVE&&now-a.at>60000))fireAlert(a,now-a.at>3*60000);
     if(a.rep==="once"){a.on=false;a.fired=now}else a.at=nextAt(a);ch=true}
   document.querySelectorAll("[data-cd]").forEach(el=>el.textContent=untilText(+el.dataset.cd));
   if(ch){save();if(view==="alerts"||view==="home")render()}
@@ -1724,16 +1731,28 @@ function vNotifSettings(){
   const ns=S.nset;const sw=(id,on,label)=>`<button class="switch" data-act="nsToggle" data-id="${id}" aria-pressed="${!!on}" aria-label="${label}"></button>`;
   const perm=("Notification" in window)?Notification.permission:"unsupported";
   const bgMeta=bg.on?`On. Alerts reach your phone even when AETHER is closed.${bg.status?" "+esc(bg.status)+".":""}`:bg.base===""?"Needs the AETHER server. Deploy AETHER on Netlify once, then paste its link below.":"Get alerts on your lock screen, even when AETHER is closed.";
+  if(NATIVE){let exact=true,allowed=true;try{exact=AetherNative.canExactAlarms();allowed=AetherNative.notificationsAllowed()}catch(e){}
+    return card("Smart notifications","",`<div class="list">
+    <div class="row bg-row"><div class="grow"><b>Alarms that speak</b><div class="meta">Built into the AETHER Android app. Even when the app is closed and the phone is locked, alerts ring and Aether reads them out loud.${bg.status?" "+esc(bg.status)+".":""}</div></div><button class="btn sm" data-act="nativeTest">${ic("vol")}Test in 10 sec</button></div>
+    ${!allowed?`<div class="row"><div class="grow"><b>Notifications are off</b><div class="meta">Turn them on so alarms can show and ring.</div></div><button class="btn sm" data-act="nativeNotif">Turn on</button></div>`:""}
+    ${!exact?`<div class="row"><div class="grow"><b>Allow exact alarms</b><div class="meta">So alerts ring at the exact minute.</div></div><button class="btn sm" data-act="nativeExact">Allow</button></div>`:""}
+    <div class="row"><div class="grow"><b>Alarm sound and volume</b><div class="meta">Alerts use your alarm volume. Change the sound in the phone's notification settings.</div></div><button class="btn ghost sm" data-act="nativeNotif">Open</button></div>`+vNotifRows(ns,sw)+`</div>`+briefButtons(),"",60)}
   return card("Smart notifications","",`<div class="list">
     <div class="row bg-row"><div class="grow"><b>Alerts when the app is closed</b><div class="meta">${bgMeta}</div></div>${bg.on?`<button class="btn ghost sm" data-act="bgTest">Send test</button>${sw("bg",true,"Alerts when the app is closed")}`:`<button class="btn sm" data-act="bgOn" ${bg.base===""?"disabled":""}>Turn on</button>`}</div>
     ${bg.on?`<details class="snd-help"><summary>Alert comes without sound?</summary><p class="meta">Your phone decides the sound for notifications. On Android: open <b>Settings → Apps → AETHER</b> (or <b>Chrome</b> if you use AETHER in Chrome) → <b>Notifications</b>, open the AETHER or site category and turn on <b>Sound</b> / <b>Alert</b>, and allow it on the lock screen. Also check that the phone is not on silent or Do Not Disturb. Each alert rings for about 10 seconds; tap <b>Snooze 5 min</b> or <b>Got it</b>.</p></details>`:""}
     ${bg.base===""?`<form class="add" data-form="server" style="padding:4px 0 10px"><input class="inp wide" id="srv-url" name="url" type="url" placeholder="https://your-site.netlify.app" value="${esc(savedServer())}" aria-label="AETHER server link"><button class="btn sm">Connect</button></form>`:""}
-    <div class="row"><div class="grow"><b>Remind me before tasks</b><div class="meta">A heads-up before each task with a time</div></div><select class="inp" id="ns-before" data-ns="before" aria-label="Minutes before">${[0,5,10,15,30,60].map(n=>`<option value="${n}" ${+ns.before===n?"selected":""}>${n?n+" min before":"Off"}</option>`).join("")}</select></div>
+    ${isAndroid()?`<div class="row"><div class="grow"><b>Want alerts that speak?</b><div class="meta">The AETHER Android app reads alerts out loud even when the phone is locked.</div></div><a class="go-link" href="${APK_URL}">${ic("download","style='width:14px;height:14px'")} Get app</a></div>`:""}
+    ${vNotifRows(ns,sw,perm)}
+    <div class="row"><div class="grow"><b>Pop-up notifications</b><div class="meta">${perm==="granted"?"On. You also get browser notifications.":perm==="denied"?"Blocked in your browser settings.":"Also show notifications outside this tab"}</div></div>${perm==="granted"?`<span class="status posted">on</span>`:`<button class="btn ghost sm" data-act="alerts">Allow</button>`}</div>
+  </div>${briefButtons()}`,"",60);
+}
+const briefButtons=()=>`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn ghost sm" data-act="briefNow" data-id="morning">${ic("spark")}Play morning briefing</button><button class="btn ghost sm" data-act="briefNow" data-id="evening">Play evening review</button></div>`;
+// Reminder settings shared by the website and the Android app.
+function vNotifRows(ns,sw){
+  return `<div class="row"><div class="grow"><b>Remind me before tasks</b><div class="meta">A heads-up before each task with a time</div></div><select class="inp" id="ns-before" data-ns="before" aria-label="Minutes before">${[0,5,10,15,30,60].map(n=>`<option value="${n}" ${+ns.before===n?"selected":""}>${n?n+" min before":"Off"}</option>`).join("")}</select></div>
     <div class="row"><div class="grow"><b>Ask if I finished</b><div class="meta">One hour after a task, if it is not done</div></div>${sw("nudge",ns.nudge,"Ask if I finished")}</div>
     <div class="row"><div class="grow"><b>Morning briefing</b><div class="meta">Aether tells you your plan for the day</div></div><input class="inp" type="time" id="ns-mt" data-ns="morning.time" value="${ns.morning.time}" aria-label="Morning briefing time">${sw("morning",ns.morning.on,"Morning briefing")}</div>
-    <div class="row"><div class="grow"><b>Evening review</b><div class="meta">What you finished and what is left</div></div><input class="inp" type="time" id="ns-et" data-ns="evening.time" value="${ns.evening.time}" aria-label="Evening review time">${sw("evening",ns.evening.on,"Evening review")}</div>
-    <div class="row"><div class="grow"><b>Pop-up notifications</b><div class="meta">${perm==="granted"?"On. You also get browser notifications.":perm==="denied"?"Blocked in your browser settings.":"Also show notifications outside this tab"}</div></div>${perm==="granted"?`<span class="status posted">on</span>`:`<button class="btn ghost sm" data-act="alerts">Allow</button>`}</div>
-  </div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn ghost sm" data-act="briefNow" data-id="morning">${ic("spark")}Play morning briefing</button><button class="btn ghost sm" data-act="briefNow" data-id="evening">Play evening review</button></div>`,"",60);
+    <div class="row"><div class="grow"><b>Evening review</b><div class="meta">What you finished and what is left</div></div><input class="inp" type="time" id="ns-et" data-ns="evening.time" value="${ns.evening.time}" aria-label="Evening review time">${sw("evening",ns.evening.on,"Evening review")}</div>`;
 }
 function vSocialAlerts(){
   const ns=S.nset.social;
@@ -1795,8 +1814,13 @@ function exampleData(){
 }
 /* ---------- app: install + updates ---------- */
 /* ---------- background alerts: the AETHER server sends them while the app is closed ---------- */
+// Inside the AETHER Android app, the phone itself rings and speaks alerts (no server needed).
+const NATIVE=!!(window.AetherNative&&window.AetherNative.isAvailable);
+const APK_URL="https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI.apk";
+const isAndroid=()=>/android/i.test(navigator.userAgent);
+const hidden=k=>{try{return localStorage.getItem("aether-hide-"+k)==="1"}catch(e){return false}};
 const bg={on:false,base:null,status:""};
-try{bg.on=localStorage.getItem("aether-bg")==="1"}catch(e){}
+try{bg.on=NATIVE||localStorage.getItem("aether-bg")==="1"}catch(e){bg.on=NATIVE}
 function deviceId(){let id="";try{id=localStorage.getItem("aether-device")||""}catch(e){}
   if(!/^[a-z0-9]{16,40}$/.test(id)){id=Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>"abcdefghijklmnopqrstuvwxyz0123456789"[b%36]).join("");try{localStorage.setItem("aether-device",id)}catch(e){}}return id}
 // The AETHER server: this site's own /api (on Netlify), or a Netlify server saved in settings,
@@ -1841,7 +1865,10 @@ async function syncBg(sub){
   if(view==="alerts"){const el=document.querySelector(".bg-row .meta");if(el)el.textContent="On. Alerts reach your phone even when AETHER is closed. "+bg.status+"."}
 }
 let bgTimer=null;
-function bgSyncSoon(){if(!bg.on)return;clearTimeout(bgTimer);bgTimer=setTimeout(()=>syncBg().catch(()=>{}),2500)}
+function bgSyncSoon(){
+  if(!bg.on)return;clearTimeout(bgTimer);
+  if(NATIVE){bgTimer=setTimeout(()=>{try{const n=AetherNative.scheduleAlarms(JSON.stringify(buildPushItems()));bg.status=`${n} alarm${n===1?"":"s"} set on this phone`}catch(e){}},800);return}
+  bgTimer=setTimeout(()=>syncBg().catch(()=>{}),2500)}
 async function enableBg(btn){
   btn.disabled=true;const done=()=>{btn.disabled=false};
   try{
@@ -1872,7 +1899,7 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.5.0";
+const APP_VERSION="2.6.0";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://aetherai-com.netlify.app/";
@@ -1909,7 +1936,7 @@ function drawQR(url){
   qrLib.then(paint,()=>{const w=box.closest(".qr-wrap");if(w)w.hidden=true});
 }
 let installEvt=null;
-const isApp=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const isApp=()=>NATIVE||matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
 addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;if(view==="home")render()});
 addEventListener("appinstalled",()=>{installEvt=null;toast("AETHER is installed","Open it from your home screen like any app.");if(view==="home")render()});

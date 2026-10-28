@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'io.github.muneeb1214unsm.aether'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'io.github.muneeb1214unsm.aether'
+        minSdk 24
+        targetSdk 34
+        // The GitHub build sets these from its run number, so every release can update the last one.
+        versionCode Integer.parseInt(System.getenv('VERSION_CODE') ?: '1')
+        versionName System.getenv('VERSION_NAME') ?: '1.0.0'
+    }
+
+    // The signing key is kept in the repo on purpose (the owner chose this), so builds always sign the same way
+    // and each new APK installs over the old one without losing data.
+    signingConfigs {
+        release {
+            storeFile file('../keystore/aether-release.p12')
+            storeType 'pkcs12'
+            storePassword 'aether-android-2026'
+            keyAlias 'aether'
+            keyPassword 'aether-android-2026'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}
