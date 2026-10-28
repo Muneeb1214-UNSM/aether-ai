@@ -1,5 +1,5 @@
 // AETHER AI service worker. build.sh stamps VERSION; a new value makes the app offer "Update now".
-const VERSION = "2.4.0";
+const VERSION = "2.5.0";
 const CACHE = "aether-" + VERSION;
 const SHELL = [
   "./",
@@ -80,13 +80,16 @@ self.addEventListener("notificationclick", (e) => {
     );
     return;
   }
-  const url = new URL(data.url || "./", self.registration.scope).href;
+  const target = new URL(data.url || "./", self.registration.scope);
   e.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      if (/^https:\/\/wa\.me\//.test(url)) return self.clients.openWindow(url);
+      if (/^https:\/\/wa\.me\//.test(target.href)) return self.clients.openWindow(target.href);
+      // Opening the app from an alert: it shows the alert full screen and reads it out loud.
       const app = list.find((c) => c.url.startsWith(self.registration.scope));
-      if (app) { app.navigate(url).catch(() => {}); return app.focus(); }
-      return self.clients.openWindow(url);
+      if (app) { app.postMessage({ type: "say", title: data.title || "", body: data.body || "", url: target.href }); return app.focus(); }
+      target.searchParams.set("say", data.title || "");
+      if (data.body) target.searchParams.set("sayb", data.body);
+      return self.clients.openWindow(target.href);
     })
   );
 });

@@ -518,7 +518,7 @@ details{margin-bottom:10px}summary{cursor:pointer;font-weight:600;font-size:13px
 <div class="alert-pop" id="alertPop" hidden role="alertdialog" aria-modal="true" aria-labelledby="alertTitle">
   <div class="alert-card"><div class="alert-bell" id="alertBell"></div><div class="eyebrow" style="color:rgba(255,255,255,.8)" id="alertWhen">Alert</div>
     <h2 id="alertTitle"></h2><p id="alertMore"></p>
-    <div class="acts"><button class="btn-hero" id="alertDone">Got it</button><button class="btn-hero alt" id="alertSnooze">Snooze 5 min</button></div></div>
+    <div class="acts"><button class="btn-hero" id="alertDone">Got it</button><button class="btn-hero alt" id="alertHear">Hear it</button><button class="btn-hero alt" id="alertSnooze">Snooze 5 min</button></div></div>
 </div>
 
 <script>
@@ -638,6 +638,9 @@ async function boot(){
   if(location.hash&&SECTIONS.some(s=>"#"+s.id===location.hash))view=location.hash.slice(1);
   setSync();go(view);paintProfile();startAlerts();bgSyncSoon();setInterval(bgSyncSoon,6*3600000);
   if(!S.profile)showOnboard();
+  // Opened by tapping a background alert: show it full screen and read it out loud.
+  try{const q=new URLSearchParams(location.search);if(q.get("say")){sayAlert(q.get("say"),q.get("sayb")||"");history.replaceState(null,"",location.pathname+location.hash)}}catch(e){}
+  try{navigator.serviceWorker&&navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.type==="say"){const h=(e.data.url||"").split("#")[1];if(h&&VIEWS[h])go(h);sayAlert(e.data.title,e.data.body)}})}catch(e){}
   initAI();
 }
 
@@ -1691,6 +1694,14 @@ function showNextAlert(){
   speak(x.say||"Alert. "+x.text,true);
 }
 document.getElementById("alertDone").onclick=()=>{alertQueue.shift();showNextAlert()};
+document.getElementById("alertHear").onclick=()=>{const x=alertQueue[0];if(x)speak(x.say||"Alert. "+x.text,true)};
+document.getElementById("alertHear").innerHTML=ic("vol")+"Hear it";
+// A background alert the user tapped: same full-screen alert, read out loud (browsers may need the Hear it tap).
+function sayAlert(title,body){
+  const t=String(title||"").replace(/^(Snoozed: )/,"").trim();if(!t)return;
+  alertQueue.push({text:t,more:body||"",say:"Alert. "+t+(body&&!/AETHER alert/.test(body)?". "+body:""),late:false,rep:"once"});
+  if(document.getElementById("alertPop").hidden)showNextAlert();
+}
 document.getElementById("alertSnooze").onclick=()=>{const x=alertQueue.shift();addAlert({text:x.text,at:Date.now()+5*60000,rep:"once"});toast("Snoozed","I will remind you again in 5 minutes.");showNextAlert()};
 function checkCustomAlerts(){
   const now=Date.now();let ch=false;
@@ -1861,7 +1872,7 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.4.0";
+const APP_VERSION="2.5.0";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://aetherai-com.netlify.app/";
