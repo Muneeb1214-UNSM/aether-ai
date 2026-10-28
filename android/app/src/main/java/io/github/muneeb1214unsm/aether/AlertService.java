@@ -27,6 +27,7 @@ import java.util.Locale;
  */
 public class AlertService extends Service implements TextToSpeech.OnInitListener {
     static final String CHANNEL = "aether_alerts_v1";
+    static final String QUIET_CHANNEL = "aether_status_v1";
     private static final long SPEAK_AFTER_MS = 1800; // let the alert sound play first
     private static final long MAX_RUN_MS = 45000;
 
@@ -38,7 +39,11 @@ public class AlertService extends Service implements TextToSpeech.OnInitListener
     static void createChannel(Context c) {
         if (Build.VERSION.SDK_INT < 26) return;
         NotificationManager nm = c.getSystemService(NotificationManager.class);
-        if (nm == null || nm.getNotificationChannel(CHANNEL) != null) return;
+        if (nm == null) return;
+        if (nm.getNotificationChannel(QUIET_CHANNEL) == null) {
+            nm.createNotificationChannel(new NotificationChannel(QUIET_CHANNEL, c.getString(R.string.channel_quiet), NotificationManager.IMPORTANCE_DEFAULT));
+        }
+        if (nm.getNotificationChannel(CHANNEL) != null) return;
         NotificationChannel ch = new NotificationChannel(CHANNEL, c.getString(R.string.channel_alerts), NotificationManager.IMPORTANCE_HIGH);
         ch.setDescription(c.getString(R.string.channel_alerts_desc));
         ch.enableVibration(true);
@@ -71,11 +76,11 @@ public class AlertService extends Service implements TextToSpeech.OnInitListener
                 .putExtra("say", title).putExtra("sayb", body);
         PendingIntent openPi = PendingIntent.getActivity(c, nid, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        Intent snooze = new Intent(c, AlarmReceiver.class).setAction(AlarmScheduler.ACTION_SNOOZE)
-                .putExtra("nid", nid).putExtra("title", title).putExtra("body", body).putExtra("url", url);
-        PendingIntent snoozePi = PendingIntent.getBroadcast(c, nid + 100000, snooze, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        Intent done = new Intent(c, AlarmReceiver.class).setAction(AlarmScheduler.ACTION_DONE).putExtra("nid", nid);
-        PendingIntent donePi = PendingIntent.getBroadcast(c, nid + 200000, done, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        String kind = i.getStringExtra("kind");
+        boolean isTask = ("task".equals(kind) || "taskpre".equals(kind)) && i.getStringExtra("tid") != null;
+        boolean autoWa = i.getBooleanExtra("auto", false);
+        PendingIntent snoozePi = button(c, i, AlarmScheduler.ACTION_SNOOZE, nid, 1);
+        PendingIntent donePi = button(c, i, AlarmScheduler.ACTION_DONE, nid, 2);
 
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(c, CHANNEL) : new Notification.Builder(c);
         b.setSmallIcon(R.drawable.ic_stat_aether)
@@ -87,16 +92,34 @@ public class AlertService extends Service implements TextToSpeech.OnInitListener
                 .setCategory(Notification.CATEGORY_ALARM)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setColor(0xFF818CF8);
-        if (url.startsWith("https://wa.me/")) {
-            PendingIntent waPi = PendingIntent.getActivity(c, nid + 300000,
-                    new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            b.addAction(new Notification.Action.Builder((Icon) null, "Send on WhatsApp", waPi).build());
+        if (autoWa) {
+            // Being sent by itself: just say so.
+            b.setContentText("Sending it for you now…");
+        } else if (isTask) {
+            // Your choice: finish it, push it 5 minutes, or delete it.
+            b.addAction(new Notification.Action.Builder((Icon) null, "Done", button(c, i, AlarmScheduler.ACTION_TASK_DONE, nid, 3)).build());
+            b.addAction(new Notification.Action.Builder((Icon) null, "Snooze 5 min", snoozePi).build());
+            b.addAction(new Notification.Action.Builder((Icon) null, "Delete task", button(c, i, AlarmScheduler.ACTION_TASK_DELETE, nid, 4)).build());
+        } else {
+            if (url.startsWith("https://wa.me/")) {
+                PendingIntent waPi = PendingIntent.getActivity(c, nid + 300000,
+                        new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+                b.addAction(new Notification.Action.Builder((Icon) null, "Send on WhatsApp", waPi).build());
+            }
+            b.addAction(new Notification.Action.Builder((Icon) null, "Snooze 5 min", snoozePi).build());
+            b.addAction(new Notification.Action.Builder((Icon) null, "Got it", donePi).build());
         }
-        b.addAction(new Notification.Action.Builder((Icon) null, "Snooze 5 min", snoozePi).build());
-        b.addAction(new Notification.Action.Builder((Icon) null, "Got it", donePi).build());
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_MAX).setDefaults(Notification.DEFAULT_ALL);
         return b.build();
+    }
+
+    /** A notification button that carries everything about the alert (so Snooze can repeat it). */
+    private static PendingIntent button(Context c, Intent alarm, String action, int nid, int slot) {
+        Intent b = new Intent(c, AlarmReceiver.class).setAction(action).putExtra("nid", nid);
+        if (alarm.getExtras() != null) b.putExtras(alarm.getExtras());
+        b.putExtra("nid", nid).removeExtra("auto");
+        return PendingIntent.getBroadcast(c, nid + slot * 100000, b, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     /** Fallback when the service can't start: show the alert without speaking. */
@@ -122,8 +145,14 @@ public class AlertService extends Service implements TextToSpeech.OnInitListener
         String title = i.getStringExtra("title");
         if (title == null || title.isEmpty()) title = "AETHER alert";
         String body = i.getStringExtra("body");
-        boolean sayBody = body != null && !body.isEmpty() && !body.contains("AETHER alert") && !body.startsWith("Tap");
-        speech = "Alert. " + title.replace("Snoozed: ", "") + (sayBody ? ". " + body : "");
+        String say = i.getStringExtra("say");
+        if (say != null && !say.isEmpty()) {
+            // A full sentence from the web app, like "Muneeb, it's time for Gym."
+            speech = title.startsWith("Snoozed: ") ? "Reminder again. " + say : say;
+        } else {
+            boolean sayBody = body != null && !body.isEmpty() && !body.contains("AETHER alert") && !body.startsWith("Tap");
+            speech = "Alert. " + title.replace("Snoozed: ", "") + (sayBody ? ". " + body : "");
+        }
 
         handler.removeCallbacksAndMessages(null);
         handler.postDelayed(this::finish, MAX_RUN_MS);

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Bundle;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,13 +19,17 @@ final class AlarmScheduler {
     static final String ACTION_ALARM = "io.github.muneeb1214unsm.aether.ALARM";
     static final String ACTION_SNOOZE = "io.github.muneeb1214unsm.aether.SNOOZE";
     static final String ACTION_DONE = "io.github.muneeb1214unsm.aether.DONE";
+    static final String ACTION_TASK_DONE = "io.github.muneeb1214unsm.aether.TASK_DONE";
+    static final String ACTION_TASK_DELETE = "io.github.muneeb1214unsm.aether.TASK_DELETE";
+    /** Text fields an alert can carry from the web app to the alarm and its buttons. */
+    static final String[] FIELDS = {"k", "title", "body", "url", "say", "kind", "tid", "phone", "text", "name"};
     private static final String PREFS = "aether";
     private static final int MAX_ALARMS = 60;
     private static final int REQ_BASE = 1000;
 
     private AlarmScheduler() {}
 
-    private static SharedPreferences prefs(Context c) {
+    static SharedPreferences prefs(Context c) {
         return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
@@ -48,19 +53,60 @@ final class AlarmScheduler {
         prefs(c).edit().putString("items", merged.toString()).apply();
     }
 
-    static synchronized void addItem(Context c, String key, long at, String title, String body, String url, boolean force) {
+    static synchronized void addItem(Context c, JSONObject it) {
         try {
             JSONArray arr = new JSONArray(prefs(c).getString("items", "[]"));
-            JSONObject it = new JSONObject();
-            it.put("k", key);
-            it.put("at", at);
-            it.put("title", title == null ? "AETHER alert" : title);
-            it.put("body", body == null ? "" : body);
-            it.put("url", url == null ? "" : url);
-            if (force) it.put("force", true);
             arr.put(it);
             prefs(c).edit().putString("items", arr.toString()).apply();
         } catch (Exception ignored) {}
+    }
+
+    /** Builds an alert from an alarm's extras, for example to snooze it. */
+    static JSONObject fromExtras(Bundle b, String key, long at) {
+        JSONObject it = new JSONObject();
+        try {
+            for (String f : FIELDS) {
+                String v = b == null ? null : b.getString(f);
+                if (v != null) it.put(f, v);
+            }
+            it.put("k", key);
+            it.put("at", at);
+        } catch (Exception ignored) {}
+        return it;
+    }
+
+    /** Removes every upcoming alarm for a task that was done or deleted from a notification. */
+    static synchronized void removeTask(Context c, String tid) {
+        if (tid == null || tid.isEmpty()) return;
+        try {
+            JSONArray arr = new JSONArray(prefs(c).getString("items", "[]"));
+            JSONArray kept = new JSONArray();
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject it = arr.optJSONObject(i);
+                if (it != null && !tid.equals(it.optString("tid"))) kept.put(it);
+            }
+            prefs(c).edit().putString("items", kept.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+
+    // ---------- events the web app picks up next time it opens ----------
+
+    static synchronized void addEvent(Context c, String type, String key, String value) {
+        try {
+            JSONArray arr = new JSONArray(prefs(c).getString("events", "[]"));
+            JSONObject e = new JSONObject();
+            e.put("type", type);
+            e.put(key, value);
+            e.put("at", System.currentTimeMillis());
+            arr.put(e);
+            prefs(c).edit().putString("events", arr.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+
+    static synchronized String takeEvents(Context c) {
+        String s = prefs(c).getString("events", "[]");
+        prefs(c).edit().putString("events", "[]").apply();
+        return s;
     }
 
     static boolean canExact(Context c) {
@@ -107,11 +153,11 @@ final class AlarmScheduler {
         for (JSONObject it : upcoming) {
             if (n >= MAX_ALARMS) break;
             Intent in = new Intent(c, AlarmReceiver.class).setAction(ACTION_ALARM)
-                    .putExtra("k", it.optString("k"))
-                    .putExtra("title", it.optString("title", "AETHER alert"))
-                    .putExtra("body", it.optString("body"))
-                    .putExtra("url", it.optString("url"))
                     .putExtra("force", it.optBoolean("force", false));
+            for (String f : FIELDS) {
+                if (it.has(f)) in.putExtra(f, it.optString(f));
+            }
+            if (!it.has("title")) in.putExtra("title", "AETHER alert");
             PendingIntent pi = PendingIntent.getBroadcast(c, REQ_BASE + n, in,
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             long at = it.optLong("at");

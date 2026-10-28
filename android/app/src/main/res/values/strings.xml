@@ -3,4 +3,7 @@
     <string name="app_name">AETHER AI</string>
     <string name="channel_alerts">Alerts and alarms</string>
     <string name="channel_alerts_desc">Alerts, task reminders and briefings. Rings and reads the alert out loud.</string>
+    <string name="channel_quiet">WhatsApp sending status</string>
+    <string name="wa_service_label">AETHER WhatsApp helper</string>
+    <string name="wa_service_desc">Sends your scheduled WhatsApp messages by itself. At the time you chose, AETHER opens the chat with your message typed in and this helper taps Send. It only works inside WhatsApp, only for messages you scheduled in AETHER, and never reads your chats.</string>
 </resources>

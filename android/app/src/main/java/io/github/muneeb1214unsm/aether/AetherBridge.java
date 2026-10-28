@@ -102,9 +102,53 @@ final class AetherBridge {
     @JavascriptInterface
     public void testAlarm() {
         long now = System.currentTimeMillis();
-        AlarmScheduler.addItem(act, "test-" + now, now + 10000, "AETHER test alert",
-                "This is how alerts sound when the app is closed.", "", true);
+        try {
+            JSONObject it = new JSONObject();
+            it.put("k", "test-" + now);
+            it.put("at", now + 10000);
+            it.put("title", "AETHER test alert");
+            it.put("body", "This is how alerts sound when the app is closed.");
+            it.put("say", "Hello! This is your AETHER test alert. Your alarms are working.");
+            it.put("force", true);
+            AlarmScheduler.addItem(act, it);
+        } catch (Exception ignored) {}
         AlarmScheduler.scheduleAll(act);
+    }
+
+    /** Things done from notifications while the app was closed (task done or deleted, WhatsApp sent). */
+    @JavascriptInterface
+    public String takeEvents() {
+        return AlarmScheduler.takeEvents(act);
+    }
+
+    // ---------- WhatsApp auto-send ----------
+
+    @JavascriptInterface
+    public boolean whatsappInstalled() {
+        return WaSender.whatsappPackage(act) != null;
+    }
+
+    @JavascriptInterface
+    public boolean waAutoSendOn() {
+        return WaSender.serviceOn(act);
+    }
+
+    @JavascriptInterface
+    public void openAccessibilitySettings() {
+        act.runOnUiThread(() -> {
+            try {
+                act.startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+            } catch (Exception ignored) {}
+        });
+    }
+
+    @JavascriptInterface
+    public void openAppInfo() {
+        act.runOnUiThread(() -> {
+            try {
+                act.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + act.getPackageName())));
+            } catch (Exception ignored) {}
+        });
     }
 
     // ---------- speaking (inside the app) ----------
