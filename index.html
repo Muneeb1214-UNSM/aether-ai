@@ -1005,7 +1005,10 @@ function vWhatsApp(){
 // Sending by itself needs the Android app and its WhatsApp helper (Accessibility) switched on.
 function waAutoCard(){
   if(!NATIVE)return card("Send automatically",isAndroid()?"Android app":"",`<p class="meta" style="margin:0 0 10px">Want scheduled messages to send by themselves at the right time? That works in the AETHER Android app.${isAndroid()?"":" On a computer or iPhone, Aether reminds you and opens WhatsApp with the message ready."}</p>${isAndroid()?`<button class="btn" data-act="getAndroid">${ic("download")}Get Android app</button>`:""}`,"span2");
-  let on=false,wa=true;try{on=AetherNative.waAutoSendOn();wa=AetherNative.whatsappInstalled()}catch(e){}
+  let on=false,wa=true,helper=true;try{on=AetherNative.waAutoSendOn();wa=AetherNative.whatsappInstalled();helper=!AetherNative.hasWaHelper||AetherNative.hasWaHelper()}catch(e){}
+  if(!helper)return card("Send automatically",`<span class="status draft">off</span>`,`<p style="margin:0 0 10px">This is the standard AETHER app. Aether rings and reminds you at the time, and opens WhatsApp with your message ready. To send by itself, install the <b>WhatsApp edition</b> over this app; your data stays.</p>
+    <a class="btn" href="${APK_WA_URL}">${ic("download")}Get WhatsApp edition</a>
+    <p class="note">The WhatsApp edition uses Android Accessibility to tap Send, so Google Play Protect may block it. If it does: open the <b>Play Store</b> → your profile picture → <b>Play Protect</b> → ⚙ → turn off <b>Scan apps with Play Protect</b>, install, then turn it back on. Only do this if you trust this app.</p>`,"span2");
   if(!wa)return card("Send automatically","",`<p class="meta" style="margin:0">WhatsApp isn't installed on this phone, so messages can't be sent automatically.</p>`,"span2");
   if(on)return card("Send automatically",`<span class="status posted">on</span>`,`<p class="meta" style="margin:0">Scheduled messages send by themselves at their time. If the phone is locked, AETHER sends them right after you unlock it, and tells you when each one is sent.</p>`,"span2");
   return card("Send automatically",`<span class="status draft">off</span>`,`<p style="margin:0 0 10px">Turn this on once and your scheduled messages will send by themselves. AETHER opens the chat with your message and its WhatsApp helper taps Send.</p>
@@ -1846,6 +1849,7 @@ function exampleData(){
 // Inside the AETHER Android app, the phone itself rings and speaks alerts (no server needed).
 const NATIVE=!!(window.AetherNative&&window.AetherNative.isAvailable);
 const APK_URL="https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI.apk";
+const APK_WA_URL="https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI-WhatsApp.apk";
 const isAndroid=()=>/android/i.test(navigator.userAgent);
 const hidden=k=>{try{return localStorage.getItem("aether-hide-"+k)==="1"}catch(e){return false}};
 const bg={on:false,base:null,status:""};
@@ -1958,7 +1962,7 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.7.0";
+const APP_VERSION="2.7.1";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://aetherai-com.netlify.app/";

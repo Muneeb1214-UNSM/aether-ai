@@ -6,7 +6,9 @@ Your personal assistant app. Plan your day, track your health and study, improve
 
 ## Android app (APK)
 
-**[Download AETHER for Android](https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI.apk)**
+**[Download AETHER for Android](https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI.apk)** (recommended)
+
+**[WhatsApp edition](https://github.com/Muneeb1214-UNSM/aether-ai/releases/latest/download/AETHER-AI-WhatsApp.apk)**: the same app plus scheduled WhatsApp messages that send by themselves. It uses Android Accessibility, which Google Play Protect often blocks for apps installed outside the Play Store. Both editions update each other and keep your data.
 
 The Android app adds what a website can't do: **alarms that ring and read your alerts out loud, even when the app is closed and the phone is locked.**
 
