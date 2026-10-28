@@ -8,6 +8,10 @@ const config = () => getStore({ name: "aether-config", consistency: "strong" });
 // How late an alert may still be delivered (for example after a short outage).
 export const LATE_LIMIT_MS = 15 * 60 * 1000;
 
+// Full address of this server's API, sent inside each alert so the phone can call back (Snooze).
+// Netlify sets URL to the site's main address.
+export const API_URL = (process.env.URL || "https://aetherai-com.netlify.app").replace(/\/+$/, "") + "/api/";
+
 // Push keys: taken from environment variables if both are set, otherwise created once
 // on first use and kept in the site's private Netlify Blobs storage. No manual setup needed.
 let keys = null;

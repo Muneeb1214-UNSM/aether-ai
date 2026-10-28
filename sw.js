@@ -1,5 +1,5 @@
 // AETHER AI service worker. build.sh stamps VERSION; a new value makes the app offer "Update now".
-const VERSION = "2.3.2";
+const VERSION = "2.4.0";
 const CACHE = "aether-" + VERSION;
 const SHELL = [
   "./",
@@ -29,30 +29,58 @@ self.addEventListener("message", (e) => {
 });
 
 // Background alerts from the AETHER server. If the app is open and in front, it shows its own alert instead.
+const RING_MS = 10000; // keep ringing about this long, unless the alert is tapped or dismissed
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data && e.data.text() }; }
-  e.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      const inFront = list.some((c) => c.focused && c.visibilityState === "visible");
-      if (inFront && !d.force) return;
-      return self.registration.showNotification(d.title || "AETHER alert", {
-        body: d.body || "",
-        icon: "icons/icon-192.png",
-        badge: "icons/favicon-64.png",
-        tag: d.tag || "aether",
-        renotify: true,
-        requireInteraction: true,
-        vibrate: [300, 150, 300, 150, 300],
-        data: { url: d.url || "./" },
-      });
-    })
-  );
+  e.waitUntil((async () => {
+    const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    if (list.some((c) => c.focused && c.visibilityState === "visible") && !d.force) return;
+    const title = d.title || "AETHER alert", tag = d.tag || "aether";
+    const isWa = /^https:\/\/wa\.me\//.test(d.url || "");
+    const opts = {
+      body: d.body || "",
+      icon: "icons/icon-192.png",
+      badge: "icons/favicon-64.png",
+      tag,
+      renotify: true,
+      requireInteraction: true,
+      silent: false,
+      vibrate: [500, 200, 500, 200, 500, 200, 800],
+      actions: isWa
+        ? [{ action: "open", title: "Send on WhatsApp" }, { action: "snooze", title: "Snooze 5 min" }]
+        : [{ action: "snooze", title: "Snooze 5 min" }, { action: "done", title: "Got it" }],
+      data: { url: d.url || "./", api: d.api || "", dev: d.dev || "", title, body: d.body || "" },
+    };
+    await self.registration.showNotification(title, opts);
+    // Ring again (sound + vibration) every few seconds while the alert is still on screen.
+    for (let t = 3500; t < RING_MS; t += 3500) {
+      await wait(3500);
+      const still = await self.registration.getNotifications({ tag });
+      if (!still.length) break;
+      await self.registration.showNotification(title, opts);
+    }
+  })());
 });
 
+// "Got it" and closing the alert just stop it. "Snooze" asks the server to send it again in 5 minutes.
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  const url = new URL((e.notification.data && e.notification.data.url) || "./", self.registration.scope).href;
+  const data = e.notification.data || {};
+  if (e.action === "done") return;
+  if (e.action === "snooze") {
+    if (!data.api || !data.dev) return;
+    e.waitUntil(
+      fetch(data.api + "snooze", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ deviceId: data.dev, title: data.title, body: data.body, url: data.url, minutes: 5 }),
+      }).catch(() => {})
+    );
+    return;
+  }
+  const url = new URL(data.url || "./", self.registration.scope).href;
   e.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       if (/^https:\/\/wa\.me\//.test(url)) return self.clients.openWindow(url);

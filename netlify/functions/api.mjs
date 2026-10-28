@@ -3,7 +3,7 @@
 //   POST /api/sync         -> save this device's push subscription and upcoming alerts
 //   POST /api/test         -> send a test notification now
 //   POST /api/unsubscribe  -> forget this device
-import { devices, sendPush, vapidKeys } from "../lib/push.mjs";
+import { devices, sendPush, vapidKeys, API_URL } from "../lib/push.mjs";
 
 const MAX_ITEMS = 500;
 
@@ -78,11 +78,30 @@ export default async (req) => {
         url: "./#alerts",
         tag: "aether-test",
         force: true,
+        dev: id,
+        api: API_URL,
       });
       return json({ ok: true });
     } catch (e) {
       return json({ error: e.message || "Push failed" }, 502);
     }
+  }
+
+  if (route === "snooze") {
+    const doc = await store.get(id, { type: "json" });
+    if (!doc || !doc.subscription) return json({ error: "This device is not registered yet" }, 404);
+    const minutes = Math.min(60, Math.max(1, Number(body.minutes) || 5));
+    const now = Date.now();
+    const item = cleanItem({
+      k: `snooze-${now}`,
+      at: now + minutes * 60000,
+      title: str(body.title, 110).replace(/^(Snoozed: )+/, "") ? "Snoozed: " + str(body.title, 110).replace(/^(Snoozed: )+/, "") : "Snoozed alert",
+      body: body.body,
+      url: body.url,
+    });
+    doc.items = [...(doc.items || []), item].sort((a, b) => a.at - b.at).slice(0, MAX_ITEMS);
+    await store.setJSON(id, doc);
+    return json({ ok: true, at: item.at });
   }
 
   if (route === "unsubscribe") {

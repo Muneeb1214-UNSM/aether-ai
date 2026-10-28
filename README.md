@@ -160,6 +160,7 @@ Optional: to use your own keys, set both `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_K
 Notes:
 - Android (Chrome, Edge, Samsung Internet) works directly. On iPhone (iOS 16.4+), add AETHER to the Home Screen first and turn it on from the installed app.
 - A closed app can't speak, so background alerts use your phone's notification sound and vibration. When the app is open, Aether still reads alerts out loud.
+- Each background alert rings (sound + vibration) for about 10 seconds and has **Snooze 5 min** and **Got it** buttons. If it arrives silently, turn on Sound for AETHER (or Chrome) in your phone's notification settings.
 - Alerts can arrive up to about a minute late, because the server checks once a minute.
 - Open the app at least once a week so the next 7 days of alerts stay up to date.
 

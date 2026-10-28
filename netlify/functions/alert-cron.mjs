@@ -1,5 +1,5 @@
 // Runs every minute on Netlify and sends every alert that is due, to every registered device.
-import { devices, sendPush, vapidKeys, LATE_LIMIT_MS } from "../lib/push.mjs";
+import { devices, sendPush, vapidKeys, LATE_LIMIT_MS, API_URL } from "../lib/push.mjs";
 
 export default async () => {
   await vapidKeys();
@@ -21,7 +21,7 @@ export default async () => {
       changed = true;
       if (now - it.at > LATE_LIMIT_MS) continue; // too old to be useful
       try {
-        await sendPush(doc.subscription, { title: it.title, body: it.body, url: it.url, tag: it.k });
+        await sendPush(doc.subscription, { title: it.title, body: it.body, url: it.url, tag: it.k, dev: key, api: API_URL });
         sentCount++;
       } catch (e) {
         // 404/410: the browser dropped this subscription (app removed or permission revoked).

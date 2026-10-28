@@ -374,6 +374,7 @@ input[type=range]{width:100%;accent-color:var(--a2)}
 .toast .go-link{background:rgba(127,127,127,.18);color:inherit;border-color:transparent}
 .go-link:hover{border-color:var(--a2)}
 
+.snd-help{padding:0 0 10px}.snd-help p{margin:6px 0 0}
 /* share */
 .share-link{display:flex;gap:8px}
 .share-link .inp{flex:1;font-family:var(--f-mono);font-size:13px}
@@ -1714,6 +1715,7 @@ function vNotifSettings(){
   const bgMeta=bg.on?`On. Alerts reach your phone even when AETHER is closed.${bg.status?" "+esc(bg.status)+".":""}`:bg.base===""?"Needs the AETHER server. Deploy AETHER on Netlify once, then paste its link below.":"Get alerts on your lock screen, even when AETHER is closed.";
   return card("Smart notifications","",`<div class="list">
     <div class="row bg-row"><div class="grow"><b>Alerts when the app is closed</b><div class="meta">${bgMeta}</div></div>${bg.on?`<button class="btn ghost sm" data-act="bgTest">Send test</button>${sw("bg",true,"Alerts when the app is closed")}`:`<button class="btn sm" data-act="bgOn" ${bg.base===""?"disabled":""}>Turn on</button>`}</div>
+    ${bg.on?`<details class="snd-help"><summary>Alert comes without sound?</summary><p class="meta">Your phone decides the sound for notifications. On Android: open <b>Settings → Apps → AETHER</b> (or <b>Chrome</b> if you use AETHER in Chrome) → <b>Notifications</b>, open the AETHER or site category and turn on <b>Sound</b> / <b>Alert</b>, and allow it on the lock screen. Also check that the phone is not on silent or Do Not Disturb. Each alert rings for about 10 seconds; tap <b>Snooze 5 min</b> or <b>Got it</b>.</p></details>`:""}
     ${bg.base===""?`<form class="add" data-form="server" style="padding:4px 0 10px"><input class="inp wide" id="srv-url" name="url" type="url" placeholder="https://your-site.netlify.app" value="${esc(savedServer())}" aria-label="AETHER server link"><button class="btn sm">Connect</button></form>`:""}
     <div class="row"><div class="grow"><b>Remind me before tasks</b><div class="meta">A heads-up before each task with a time</div></div><select class="inp" id="ns-before" data-ns="before" aria-label="Minutes before">${[0,5,10,15,30,60].map(n=>`<option value="${n}" ${+ns.before===n?"selected":""}>${n?n+" min before":"Off"}</option>`).join("")}</select></div>
     <div class="row"><div class="grow"><b>Ask if I finished</b><div class="meta">One hour after a task, if it is not done</div></div>${sw("nudge",ns.nudge,"Ask if I finished")}</div>
@@ -1859,7 +1861,7 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.3.2";
+const APP_VERSION="2.4.0";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://aetherai-com.netlify.app/";
