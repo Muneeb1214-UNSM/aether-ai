@@ -1,0 +1,11 @@
+{
+  "name": "aether-ai",
+  "version": "2.3.0",
+  "private": true,
+  "description": "AETHER AI personal assistant app and its small background-alert server (Netlify Functions).",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "11.1.4",
+    "web-push": "3.6.7"
+  }
+}

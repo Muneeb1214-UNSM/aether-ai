@@ -1,8 +1,14 @@
 # Netlify settings for AETHER AI.
-# index.html is already built and committed, so Netlify only needs to publish the repo as-is.
+# index.html is already built and committed; the build step only copies the app files into dist/
+# so server code and node_modules are never published as web pages.
 [build]
-  publish = "."
-  command = ""
+  publish = "dist"
+  command = "rm -rf dist && mkdir dist && cp -r index.html manifest.webmanifest sw.js icons dist/"
+
+# Background alerts server: /api/* and a scheduler that runs every minute (netlify/functions).
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 # Always check for a fresh app page, service worker and manifest so updates arrive quickly.
 [[headers]]

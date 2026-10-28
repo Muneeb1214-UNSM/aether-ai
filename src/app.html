@@ -586,7 +586,7 @@ function normalize(d){const b=blank();d=d&&typeof d==="object"?d:{};
   return {...b,...d,goals:{...b.goals,...(d.goals||{})},study:{...b.study,...(d.study||{})},social:{...b.social,...(d.social||{})},wa:{...b.wa,...(d.wa||{})},chats:{...b.chats,...(d.chats||{})},comm:{...b.comm,...(d.comm||{})},
     nset:{...b.nset,...(d.nset||{}),morning:{...b.nset.morning,...((d.nset||{}).morning||{})},evening:{...b.nset.evening,...((d.nset||{}).evening||{})},social:{...b.nset.social,...((d.nset||{}).social||{})},ran:{...((d.nset||{}).ran||{})}}}}
 function save(){
-  dirty=true;clearTimeout(pendingSave);
+  dirty=true;clearTimeout(pendingSave);bgSyncSoon();
   pendingSave=setTimeout(()=>{
     const body=JSON.parse(JSON.stringify(S));
     saving=saving.then(async()=>{
@@ -618,7 +618,7 @@ async function boot(){
   }
   try{const v=localStorage.getItem("aether-view");if(v&&SECTIONS.some(s=>s.id===v))view=v}catch(e){}
   if(location.hash&&SECTIONS.some(s=>"#"+s.id===location.hash))view=location.hash.slice(1);
-  setSync();go(view);paintProfile();startAlerts();
+  setSync();go(view);paintProfile();startAlerts();bgSyncSoon();setInterval(bgSyncSoon,6*3600000);
   if(!S.profile)showOnboard();
   initAI();
 }
@@ -1166,7 +1166,7 @@ function toast(title,body,link){
 /* notification center: everything Aether tells you is also kept in a feed */
 const NTYPES={task:["Tasks","var(--c-work)","cal"],alert:["Alerts","var(--a3)","bell"],social:["Social","var(--c-social)","share"],whatsapp:["WhatsApp","#16a34a","wa"],brief:["Briefings","var(--a2)","spark"]};
 const INBOX={Instagram:"https://www.instagram.com/direct/inbox/",Facebook:"https://www.facebook.com/messages/",LinkedIn:"https://www.linkedin.com/messaging/",X:"https://x.com/messages",WhatsApp:"https://web.whatsapp.com/"};
-function sysNotif(title,body){try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
+function sysNotif(title,body){if(bg.on)return;try{if("Notification" in window&&Notification.permission==="granted")new Notification(title,{body})}catch(e){}}
 function logNotif(type,title,body,links){S.notifs.unshift({id:uid(),type,title,body:body||"",at:Date.now(),read:false,links:links||[]});S.notifs=S.notifs.slice(0,100);paintBadge();save()}
 function paintBadge(){const b=document.getElementById("bellBadge");if(!b)return;const n=S.notifs.filter(x=>!x.read).length;b.textContent=n>99?"99+":n;b.hidden=!n}
 function notify(title,body,link,type="task",say){const links=link?(Array.isArray(link)?link:[link]):[];logNotif(type,title,body,links);toast(title,body,links);beep();speak(say||title);sysNotif(title,body)}
@@ -1290,7 +1290,9 @@ document.addEventListener("click",e=>{
     case"readNotif":{if(e.target.closest("a"))return;const x=find(S.notifs,id);if(x&&!x.read){x.read=true;paintBadge();b.classList.remove("unread");save()}return}
     case"readAll":S.notifs.forEach(x=>x.read=true);paintBadge();break;
     case"nFilter":nFilter=id;render();return;
-    case"nsToggle":{const ns=S.nset;if(id==="nudge")ns.nudge=!ns.nudge;else ns[id].on=!ns[id].on;break}
+    case"bgOn":enableBg(b);return;
+    case"bgTest":testBg(b);return;
+    case"nsToggle":{if(id==="bg"){disableBg();return}const ns=S.nset;if(id==="nudge")ns.nudge=!ns.nudge;else ns[id].on=!ns[id].on;break}
     case"nsPlat":{const pl=S.nset.social.plats;S.nset.social.plats=pl.includes(id)?pl.filter(p=>p!==id):[...pl,id];break}
     case"nsAddTime":S.nset.social.times.push("18:00");break;
     case"briefNow":briefing(id);return;
@@ -1689,7 +1691,9 @@ function vFeed(){
 function vNotifSettings(){
   const ns=S.nset;const sw=(id,on,label)=>`<button class="switch" data-act="nsToggle" data-id="${id}" aria-pressed="${!!on}" aria-label="${label}"></button>`;
   const perm=("Notification" in window)?Notification.permission:"unsupported";
+  const bgMeta=bg.on?`On. Alerts reach your phone even when AETHER is closed.${bg.status?" "+esc(bg.status)+".":""}`:bg.base===""?"Works on the Netlify version of AETHER (it needs the AETHER server).":"Get alerts on your lock screen, even when AETHER is closed.";
   return card("Smart notifications","",`<div class="list">
+    <div class="row bg-row"><div class="grow"><b>Alerts when the app is closed</b><div class="meta">${bgMeta}</div></div>${bg.on?`<button class="btn ghost sm" data-act="bgTest">Send test</button>${sw("bg",true,"Alerts when the app is closed")}`:`<button class="btn sm" data-act="bgOn" ${bg.base===""?"disabled":""}>Turn on</button>`}</div>
     <div class="row"><div class="grow"><b>Remind me before tasks</b><div class="meta">A heads-up before each task with a time</div></div><select class="inp" id="ns-before" data-ns="before" aria-label="Minutes before">${[0,5,10,15,30,60].map(n=>`<option value="${n}" ${+ns.before===n?"selected":""}>${n?n+" min before":"Off"}</option>`).join("")}</select></div>
     <div class="row"><div class="grow"><b>Ask if I finished</b><div class="meta">One hour after a task, if it is not done</div></div>${sw("nudge",ns.nudge,"Ask if I finished")}</div>
     <div class="row"><div class="grow"><b>Morning briefing</b><div class="meta">Aether tells you your plan for the day</div></div><input class="inp" type="time" id="ns-mt" data-ns="morning.time" value="${ns.morning.time}" aria-label="Morning briefing time">${sw("morning",ns.morning.on,"Morning briefing")}</div>
@@ -1756,7 +1760,79 @@ function exampleData(){
   return s;
 }
 /* ---------- app: install + updates ---------- */
-const APP_VERSION="2.2.0";
+/* ---------- background alerts: the AETHER server sends them while the app is closed ---------- */
+const bg={on:false,base:null,status:""};
+try{bg.on=localStorage.getItem("aether-bg")==="1"}catch(e){}
+function deviceId(){let id="";try{id=localStorage.getItem("aether-device")||""}catch(e){}
+  if(!/^[a-z0-9]{16,40}$/.test(id)){id=Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>"abcdefghijklmnopqrstuvwxyz0123456789"[b%36]).join("");try{localStorage.setItem("aether-device",id)}catch(e){}}return id}
+async function apiBase(){
+  if(bg.base!==null)return bg.base;
+  try{const r=await fetch("/api/health",{cache:"no-store"});const j=await r.json();bg.base=j&&j.ok?"/api/":""}catch(e){bg.base=""}
+  if(view==="alerts")render();return bg.base;
+}
+const b64u=s=>{const p="=".repeat((4-s.length%4)%4);const raw=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0))};
+// Everything that should ring in the next 7 days, as one flat list the server can check each minute.
+function buildPushItems(){
+  const now=Date.now(),end=now+7*864e5,items=[],ns=S.nset;
+  const add=(k,at,title,body,url)=>{if(at>now&&at<=end&&items.length<480)items.push({k,at,title,body,url})};
+  const when=(date,hm)=>new Date(date+"T"+hm).getTime();
+  for(const a of S.alerts){if(!a.on||!a.at)continue;let t=a.at,i=0;
+    while(t<=end&&i<200){add(`a${a.id}-${t}`,t,a.text,a.rep==="once"?"AETHER alert":(a.rep==="interval"?`Every ${a.every} min`:REP_LABEL[a.rep])+" · AETHER alert","./#alerts");
+      if(a.rep==="once")break;if(a.rep==="interval")t+=Math.max(1,a.every)*60000;else{t+=864e5;if(a.rep==="weekdays")while([0,6].includes(new Date(t).getDay()))t+=864e5}i++}}
+  for(const k of S.tasks){if(k.done||!k.time||!k.date)continue;const T=when(k.date,k.time);
+    add("t"+k.id,T,"Time for: "+k.title,fmtTime(k.time)+" · "+(CATS[k.cat]||"Task"),"./#schedule");
+    if(ns.before>0)add("tp"+k.id,T-ns.before*60000,`Coming up in ${ns.before} min: ${k.title}`,"Starts at "+fmtTime(k.time),"./#schedule")}
+  for(const m of S.wa.scheduled){if(m.sent||!m.time)continue;const c=find(S.wa.contacts,m.to);if(!c)continue;
+    for(let d=0;d<(m.rep==="daily"?7:1);d++){const date=m.rep==="daily"?addDays(m.date<today()?today():m.date,d):m.date;
+      add(`w${m.id}-${date}`,when(date,m.time),"WhatsApp message for "+c.name,m.text.slice(0,90)+" · Tap to send",waLink(c.phone,m.text))}}
+  for(const p of S.social.posts){if(p.status!=="scheduled"||!p.time)continue;add("p"+p.id,when(p.date,p.time),"Time to post on "+p.platform,p.text.slice(0,100),"./#social")}
+  for(let d=0;d<7;d++){const date=addDays(today(),d);
+    if(ns.morning.on)add("bm"+date,when(date,ns.morning.time),"Your morning briefing","Tap to see your plan for today.","./#home");
+    if(ns.evening.on)add("be"+date,when(date,ns.evening.time),"Your evening review","Tap to see what you finished today.","./#home")}
+  if(ns.social.on)for(let d=0;d<7;d++){const date=addDays(today(),d);for(const tm of ns.social.times)add(`s${date}${tm}`,when(date,tm),"Time to check your messages","Check "+ns.social.plats.join(", ")+".","./#alerts")}
+  return items.sort((a,b)=>a.at-b.at);
+}
+async function syncBg(sub){
+  if(!bg.on)return;const base=await apiBase();if(!base)return;
+  const reg=await navigator.serviceWorker.ready;sub=sub||await reg.pushManager.getSubscription();
+  if(!sub){bg.on=false;try{localStorage.setItem("aether-bg","0")}catch(e){}bg.status="";if(view==="alerts")render();return}
+  const r=await fetch(base+"sync",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({deviceId:deviceId(),subscription:sub.toJSON(),items:buildPushItems()})});
+  const j=await r.json().catch(()=>({}));bg.status=r.ok?`${j.scheduled} upcoming alert${j.scheduled===1?"":"s"} saved on the server`:(j.error||"Could not reach the server");
+  if(view==="alerts"){const el=document.querySelector(".bg-row .meta");if(el)el.textContent="On. Alerts reach your phone even when AETHER is closed. "+bg.status+"."}
+}
+let bgTimer=null;
+function bgSyncSoon(){if(!bg.on)return;clearTimeout(bgTimer);bgTimer=setTimeout(()=>syncBg().catch(()=>{}),2500)}
+async function enableBg(btn){
+  btn.disabled=true;const done=()=>{btn.disabled=false};
+  try{
+    const base=await apiBase();if(!base){toast("Not available here","Background alerts work on the Netlify version of AETHER.");return done()}
+    const h=await fetch(base+"health",{cache:"no-store"}).then(r=>r.json());
+    if(!h.push){toast("The server is not ready yet","Add the VAPID_PRIVATE_KEY setting in Netlify, then try again.");return done()}
+    if(!("serviceWorker" in navigator)||!("PushManager" in window)){toast("This browser can't do it",isIOS()?"On iPhone, first add AETHER to your Home Screen, then open it from there.":"Try Chrome or Edge.");return done()}
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){toast("Notifications are blocked","Allow notifications for this site in your browser settings, then try again.");return done()}
+    const reg=await navigator.serviceWorker.ready;
+    const sub=(await reg.pushManager.getSubscription())||(await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(h.publicKey)}));
+    bg.on=true;try{localStorage.setItem("aether-bg","1")}catch(e){}
+    await syncBg(sub);render();
+    toast("Background alerts are on","You will get alerts on your phone even when AETHER is closed. Tap Send test to try it.");
+  }catch(e){toast("Could not turn it on","Check your internet and try again.");done()}
+}
+async function testBg(btn){
+  btn.disabled=true;
+  try{await syncBg();const r=await fetch(bg.base+"test",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({deviceId:deviceId()})});
+    if(r.ok)toast("Test sent","A notification arrives in a few seconds. Try locking your phone first.");else{const j=await r.json().catch(()=>({}));toast("Test failed",j.error||"Try again in a minute.")}}
+  catch(e){toast("Test failed","Check your internet and try again.")}
+  btn.disabled=false;
+}
+async function disableBg(){
+  bg.on=false;try{localStorage.setItem("aether-bg","0")}catch(e){}bg.status="";
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}catch(e){}
+  try{if(bg.base)await fetch(bg.base+"unsubscribe",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({deviceId:deviceId()})})}catch(e){}
+  toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
+}
+
+const APP_VERSION="2.3.0";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://muneeb1214-unsm.github.io/aether-ai/";

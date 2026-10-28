@@ -111,7 +111,10 @@ Speaking works in Chrome and Edge. Every browser can use the type box.
 | `manifest.webmanifest` | App name, icons, colours and shortcuts for installing |
 | `sw.js` | Service worker: offline support and update detection |
 | `icons/` | App icons (192, 512, maskable, Apple touch, favicon) |
-| `netlify.toml` | Netlify hosting settings (publish folder, cache and security headers) |
+| `netlify.toml` | Netlify hosting settings (publish folder, functions, cache and security headers) |
+| `netlify/functions/api.mjs` | Server API: saves each device's upcoming alerts, sends a test notification |
+| `netlify/functions/alert-cron.mjs` | Runs every minute and sends due alerts as push notifications |
+| `netlify/lib/push.mjs` | Shared server code: storage and Web Push |
 
 ## How to release an update
 
@@ -139,6 +142,25 @@ The repo is ready for Netlify: `netlify.toml` publishes the folder as-is (no bui
 4. Optional: **Domain management → Add a domain** to use your own domain. Netlify adds free HTTPS.
 
 Every push to `main` redeploys the site automatically. The in-app **Share** button always shares the link of the site it is opened on.
+
+## Background alerts (even when the app is closed)
+
+On the Netlify version, AETHER has a small server that sends alerts to your phone's lock screen even when the app is closed: alerts, task reminders (and the heads-up before them), morning and evening briefings, social check-ins, post reminders, and scheduled WhatsApp messages (tap the notification and WhatsApp opens with the message ready).
+
+How it works: the app sends your upcoming 7 days of alerts to the server; `netlify/functions/alert-cron.mjs` runs every minute and sends whatever is due as a Web Push notification. Only alert times and texts are stored, with a random device id, never your name or email.
+
+**One-time setup on Netlify**
+
+1. Deploy the site to Netlify (see above).
+2. **Site configuration → Environment variables → Add a variable**: key `VAPID_PRIVATE_KEY`, value from your private `AETHER-SERVER-SECRET.txt` file. Never commit this value.
+3. **Deploys → Trigger deploy → Deploy site** so the server picks up the key.
+4. Open the Netlify link on your phone, install the app, then go to **Alerts → Smart notifications → Alerts when the app is closed → Turn on**, and tap **Send test**.
+
+Notes:
+- Android (Chrome, Edge, Samsung Internet) works directly. On iPhone (iOS 16.4+), add AETHER to the Home Screen first and turn it on from the installed app.
+- A closed app can't speak, so background alerts use your phone's notification sound and vibration. When the app is open, Aether still reads alerts out loud.
+- Alerts can arrive up to about a minute late, because the server checks once a minute.
+- Open the app at least once a week so the next 7 days of alerts stay up to date.
 
 ## Share the app
 
