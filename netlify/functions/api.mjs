@@ -3,7 +3,7 @@
 //   POST /api/sync         -> save this device's push subscription and upcoming alerts
 //   POST /api/test         -> send a test notification now
 //   POST /api/unsubscribe  -> forget this device
-import { devices, sendPush, pushReady, VAPID_PUBLIC_KEY } from "../lib/push.mjs";
+import { devices, sendPush, vapidKeys } from "../lib/push.mjs";
 
 const MAX_ITEMS = 500;
 
@@ -40,7 +40,10 @@ export default async (req) => {
   if (req.method === "OPTIONS") return json({});
   const route = new URL(req.url).pathname.replace(/^\/api\/?/, "");
 
-  if (route === "health") return json({ ok: true, push: pushReady(), publicKey: VAPID_PUBLIC_KEY });
+  if (route === "health") {
+    try { const k = await vapidKeys(); return json({ ok: true, push: true, publicKey: k.publicKey }); }
+    catch (e) { return json({ ok: true, push: false, error: e.message }); }
+  }
   if (req.method !== "POST") return json({ error: "Use POST" }, 405);
 
   let body;

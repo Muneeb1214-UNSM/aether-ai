@@ -1341,6 +1341,9 @@ document.addEventListener("submit",e=>{
     case"account":S.social.accounts.push({id:uid(),platform:d.platform,handle:d.handle.trim(),history:d.f!==""?[{date:today(),followers:+d.f}]:[]});break;
     case"followers":{if(d.n==="")return;const a=find(S.social.accounts,fid);a.history=(a.history||[]).filter(h=>h.date!==today());a.history.push({date:today(),followers:+d.n});break}
     case"post":S.social.posts.push({id:uid(),platform:d.platform,date:d.date,time:d.time,text:d.text.trim(),status:"scheduled"});toast("Post planned","Aether will remind you.");break;
+    case"server":{const u=(d.url||"").trim().replace(/\/+$/,"");if(!/^https:\/\/[\w.-]+/.test(u)){toast("Check the link","Paste the full Netlify link, like https://aether-ai.netlify.app");return}
+      probe(u+"/api/").then(b=>{if(!b){toast("Server not found","Make sure AETHER is deployed on that Netlify link, then try again.");return}
+        try{localStorage.setItem("aether-server",u)}catch(_){}bg.base=b;render();toast("Connected","Now tap Turn on to get alerts when the app is closed.")});return}
     case"mentor":{const inp=document.getElementById("min-"+fid);const q=(d.q||"").trim();if(!q)return;if(inp)inp.value="";mentorSend(fid,q);return}
     case"alert":{const txt=(d.text||"").trim()||"Reminder";
       if(d.rep==="interval"){const ev=+d.every;if(!(ev>=1)){toast("How often?","Type the number of minutes, e.g. 60 for every hour.");return}
@@ -1708,9 +1711,10 @@ function vFeed(){
 function vNotifSettings(){
   const ns=S.nset;const sw=(id,on,label)=>`<button class="switch" data-act="nsToggle" data-id="${id}" aria-pressed="${!!on}" aria-label="${label}"></button>`;
   const perm=("Notification" in window)?Notification.permission:"unsupported";
-  const bgMeta=bg.on?`On. Alerts reach your phone even when AETHER is closed.${bg.status?" "+esc(bg.status)+".":""}`:bg.base===""?"Works on the Netlify version of AETHER (it needs the AETHER server).":"Get alerts on your lock screen, even when AETHER is closed.";
+  const bgMeta=bg.on?`On. Alerts reach your phone even when AETHER is closed.${bg.status?" "+esc(bg.status)+".":""}`:bg.base===""?"Needs the AETHER server. Deploy AETHER on Netlify once, then paste its link below.":"Get alerts on your lock screen, even when AETHER is closed.";
   return card("Smart notifications","",`<div class="list">
     <div class="row bg-row"><div class="grow"><b>Alerts when the app is closed</b><div class="meta">${bgMeta}</div></div>${bg.on?`<button class="btn ghost sm" data-act="bgTest">Send test</button>${sw("bg",true,"Alerts when the app is closed")}`:`<button class="btn sm" data-act="bgOn" ${bg.base===""?"disabled":""}>Turn on</button>`}</div>
+    ${bg.base===""?`<form class="add" data-form="server" style="padding:4px 0 10px"><input class="inp wide" id="srv-url" name="url" type="url" placeholder="https://your-site.netlify.app" value="${esc(savedServer())}" aria-label="AETHER server link"><button class="btn sm">Connect</button></form>`:""}
     <div class="row"><div class="grow"><b>Remind me before tasks</b><div class="meta">A heads-up before each task with a time</div></div><select class="inp" id="ns-before" data-ns="before" aria-label="Minutes before">${[0,5,10,15,30,60].map(n=>`<option value="${n}" ${+ns.before===n?"selected":""}>${n?n+" min before":"Off"}</option>`).join("")}</select></div>
     <div class="row"><div class="grow"><b>Ask if I finished</b><div class="meta">One hour after a task, if it is not done</div></div>${sw("nudge",ns.nudge,"Ask if I finished")}</div>
     <div class="row"><div class="grow"><b>Morning briefing</b><div class="meta">Aether tells you your plan for the day</div></div><input class="inp" type="time" id="ns-mt" data-ns="morning.time" value="${ns.morning.time}" aria-label="Morning briefing time">${sw("morning",ns.morning.on,"Morning briefing")}</div>
@@ -1782,9 +1786,15 @@ const bg={on:false,base:null,status:""};
 try{bg.on=localStorage.getItem("aether-bg")==="1"}catch(e){}
 function deviceId(){let id="";try{id=localStorage.getItem("aether-device")||""}catch(e){}
   if(!/^[a-z0-9]{16,40}$/.test(id)){id=Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>"abcdefghijklmnopqrstuvwxyz0123456789"[b%36]).join("");try{localStorage.setItem("aether-device",id)}catch(e){}}return id}
+// The AETHER server: this site's own /api (on Netlify), or a Netlify server saved in settings,
+// so the GitHub Pages version and already-installed apps can use it too.
+const SERVER_URL="";
+const savedServer=()=>{try{return localStorage.getItem("aether-server")||SERVER_URL}catch(e){return SERVER_URL}};
+async function probe(base){try{const r=await fetch(base+"health",{cache:"no-store"});const j=await r.json();return j&&j.ok?base:""}catch(e){return""}}
 async function apiBase(){
   if(bg.base!==null)return bg.base;
-  try{const r=await fetch("/api/health",{cache:"no-store"});const j=await r.json();bg.base=j&&j.ok?"/api/":""}catch(e){bg.base=""}
+  bg.base=await probe("/api/");
+  if(!bg.base&&savedServer())bg.base=await probe(savedServer().replace(/\/+$/,"")+"/api/");
   if(view==="alerts")render();return bg.base;
 }
 const b64u=s=>{const p="=".repeat((4-s.length%4)%4);const raw=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(raw,c=>c.charCodeAt(0))};
@@ -1824,7 +1834,7 @@ async function enableBg(btn){
   try{
     const base=await apiBase();if(!base){toast("Not available here","Background alerts work on the Netlify version of AETHER.");return done()}
     const h=await fetch(base+"health",{cache:"no-store"}).then(r=>r.json());
-    if(!h.push){toast("The server is not ready yet","Add the VAPID_PRIVATE_KEY setting in Netlify, then try again.");return done()}
+    if(!h.push){toast("The server is starting","Try again in a minute.");return done()}
     if(!("serviceWorker" in navigator)||!("PushManager" in window)){toast("This browser can't do it",isIOS()?"On iPhone, first add AETHER to your Home Screen, then open it from there.":"Try Chrome or Edge.");return done()}
     const perm=await Notification.requestPermission();
     if(perm!=="granted"){toast("Notifications are blocked","Allow notifications for this site in your browser settings, then try again.");return done()}
@@ -1849,7 +1859,7 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.3.0";
+const APP_VERSION="2.3.1";
 
 /* ---------- share the app ---------- */
 const DEFAULT_URL="https://muneeb1214-unsm.github.io/aether-ai/";

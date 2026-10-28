@@ -1,11 +1,8 @@
 // Runs every minute on Netlify and sends every alert that is due, to every registered device.
-import { devices, sendPush, pushReady, LATE_LIMIT_MS } from "../lib/push.mjs";
+import { devices, sendPush, vapidKeys, LATE_LIMIT_MS } from "../lib/push.mjs";
 
 export default async () => {
-  if (!pushReady()) {
-    console.log("VAPID_PRIVATE_KEY is not set; skipping");
-    return;
-  }
+  await vapidKeys();
   const store = devices();
   const now = Date.now();
   const { blobs } = await store.list();

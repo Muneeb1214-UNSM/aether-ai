@@ -1,5 +1,5 @@
 // AETHER AI service worker. build.sh stamps VERSION; a new value makes the app offer "Update now".
-const VERSION = "2.3.0";
+const VERSION = "2.3.1";
 const CACHE = "aether-" + VERSION;
 const SHELL = [
   "./",

@@ -151,10 +151,11 @@ How it works: the app sends your upcoming 7 days of alerts to the server; `netli
 
 **One-time setup on Netlify**
 
-1. Deploy the site to Netlify (see above).
-2. **Site configuration → Environment variables → Add a variable**: key `VAPID_PRIVATE_KEY`, value from your private `AETHER-SERVER-SECRET.txt` file. Never commit this value.
-3. **Deploys → Trigger deploy → Deploy site** so the server picks up the key.
-4. Open the Netlify link on your phone, install the app, then go to **Alerts → Smart notifications → Alerts when the app is closed → Turn on**, and tap **Send test**.
+1. Deploy the site to Netlify (see above). That's all the server needs: it creates its own push keys on first use and keeps them in the site's private Netlify Blobs storage.
+2. Open the Netlify link on your phone, install the app, then go to **Alerts → Smart notifications → Alerts when the app is closed → Turn on**, and tap **Send test**.
+3. Using the GitHub Pages link or an app installed from it? Paste your Netlify link into the **AETHER server link** box under that setting and tap **Connect**.
+
+Optional: to use your own keys, set both `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` as Netlify environment variables.
 
 Notes:
 - Android (Chrome, Edge, Samsung Internet) works directly. On iPhone (iOS 16.4+), add AETHER to the Home Screen first and turn it on from the installed app.
