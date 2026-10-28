@@ -1788,7 +1788,7 @@ function deviceId(){let id="";try{id=localStorage.getItem("aether-device")||""}c
   if(!/^[a-z0-9]{16,40}$/.test(id)){id=Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>"abcdefghijklmnopqrstuvwxyz0123456789"[b%36]).join("");try{localStorage.setItem("aether-device",id)}catch(e){}}return id}
 // The AETHER server: this site's own /api (on Netlify), or a Netlify server saved in settings,
 // so the GitHub Pages version and already-installed apps can use it too.
-const SERVER_URL="";
+const SERVER_URL="https://aetherai-com.netlify.app";
 const savedServer=()=>{try{return localStorage.getItem("aether-server")||SERVER_URL}catch(e){return SERVER_URL}};
 async function probe(base){try{const r=await fetch(base+"health",{cache:"no-store"});const j=await r.json();return j&&j.ok?base:""}catch(e){return""}}
 async function apiBase(){
@@ -1859,10 +1859,10 @@ async function disableBg(){
   toast("Background alerts are off","AETHER will alert you only while the app is open.");render();
 }
 
-const APP_VERSION="2.3.1";
+const APP_VERSION="2.3.2";
 
 /* ---------- share the app ---------- */
-const DEFAULT_URL="https://muneeb1214-unsm.github.io/aether-ai/";
+const DEFAULT_URL="https://aetherai-com.netlify.app/";
 // The public link: the site you are on (GitHub Pages, Netlify or your own domain), never a private preview.
 function appUrl(){try{if(location.protocol==="https:"&&!/claude|anthropic|localhost|127\.0\.0\.1/.test(location.hostname))return location.origin+location.pathname.replace(/index\.html$/,"")}catch(e){}return DEFAULT_URL}
 const SHARE_TEXT="Try AETHER AI, a free personal assistant app: tasks, alerts, health, study, a communication coach and a voice assistant.";
